@@ -20,7 +20,7 @@ Window.minimum_height = 512
 
 class Run(App):
     ''' Driver code for the application, contains a screen manager
-    which controls which interface is shown to the user at a time.'''
+    that controls which interface is shown to the user at a time.'''
     def build(self):
         self.screen_manager = ScreenManager(transition = WipeTransition())
         self.version_data = ""
@@ -37,6 +37,6 @@ class Run(App):
         ''' Build the title for the current version of the application.'''
         return "Attention\t-\t"+str(self.version_data['version'])\
             +"\t-\t"+str(self.version_data['config'][0]['date'])
-if __name__ == '__main__':  
+if __name__ == '__main__':
     main = Run()
     main.run()

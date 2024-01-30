@@ -6,11 +6,12 @@ import cv2
 import numpy as np
 import mediapipe as mp
 from script.EyeTracking.utilities import LEFT_EYE, RIGHT_EYE, euclideanDistance
+import threading
 
 DISABLED = False
 TOTAL_BLINKS =0
 
-class GazeTracker():
+class GazeTracker(threading.Thread):
     def gaze_ratio(self, frame, eye, landmarks, frame_h, frame_w):
         ''' Extracts and thresholds the eyes' regions,
         increases the contrast, then calculates the ratio

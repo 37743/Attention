@@ -5,6 +5,7 @@
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Rectangle
+
 class Splash(Screen, FloatLayout):
     ''' Splash screen for the application,
     connected to the login/main menu screen.'''

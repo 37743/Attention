@@ -5,28 +5,39 @@
 import kivy
 kivy.require('2.2.0')
 # Kivy Packages
+from kivy.config import Config
+# Disable graphical annotation
+Config.set('input', 'mouse', 'mouse,disable_multitouch')
+Config.set('graphics', 'resizable', 0)
+# Config.set('graphics', 'borderless', 1)
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, WipeTransition
 from kivy.core.window import Window
-from kivy.config import Config
 # Screens
 from include.screen import splash
 # JSON Reading
 import json
 # Eyetracker
 from script.EyeTracking.cv import GazeTracker
-from multiprocessing import Process
-# Disable graphical annotation
-Config.set('input', 'mouse', 'mouse,disable_multitouch')
-# Window, resizeable
-Window.size = (1024, 640)
-Window.minimum_width = 820
-Window.minimum_height = 512
+from script.EyeTracking.utilities import WINDOW_SIZE
+import threading
+
+def thread(function):
+    def wrap(*args, **kwargs):
+        t = threading.Thread(target=function, args=args, kwargs=kwargs, daemon=True)
+        t.start()
+
+        return t
+    return wrap
 
 class Run(App):
     ''' Driver code for the application, contains a screen manager
     that controls which interface is shown to the user at a time.'''
     def build(self):
+        global WINDOW_SIZE
+        Window.size = WINDOW_SIZE
+        Window.left = 50
+        self.do_stuff()
         self.screen_manager = ScreenManager(transition = WipeTransition())
         self.version_data = ""
         with open("app/include/config/settings.json") as json_file:
@@ -38,14 +49,16 @@ class Run(App):
         for screen in screens:
             self.screen_manager.add_widget(screen)
         return self.screen_manager
+    
+    @thread
+    def do_stuff(self):
+        ''' TODO: Use this part elsewhere '''
+        et = GazeTracker()
+    
     def get_title(self):
         ''' Build the title for the current version of the application.'''
         return "Attention\t-\t"+str(self.version_data['version'])\
             +"\t-\t"+str(self.version_data['config'][0]['date'])
 if __name__ == '__main__':
-    main = Process(target=Run().run())
-    et = Process(target=GazeTracker())
-    main.start()
-    et.start()
-    main.join()
-    et.join()
+    main = Run()
+    main.run()

@@ -5,13 +5,13 @@
 import cv2
 import numpy as np
 import mediapipe as mp
-from utilities import LEFT_EYE, RIGHT_EYE, euclideanDistance
+from script.EyeTracking.utilities import LEFT_EYE, RIGHT_EYE, euclideanDistance
 
 DISABLED = False
 TOTAL_BLINKS =0
 
 class GazeTracker():
-    def gaze_ratio(frame, eye, landmarks, frame_h, frame_w):
+    def gaze_ratio(self, frame, eye, landmarks, frame_h, frame_w):
         ''' Extracts and thresholds the eyes' regions,
         increases the contrast, then calculates the ratio
         of the white pixels to the black pixels divided at the
@@ -44,7 +44,7 @@ class GazeTracker():
         gaze_ratio = lthresh_white/rthresh_white
         return gaze_ratio
 
-    def closed_ratio(frame, landmarks, right_indices, left_indices):
+    def closed_ratio(self, frame, landmarks, right_indices, left_indices):
         ''' Defines the ratio of the horizontal and vertical line
         to which determine whether the eye seems to be closed/blinking.'''
         # horizontal
@@ -82,8 +82,8 @@ class GazeTracker():
     def __init__(self):
         # Captures the first device to cam-record.
         cap = cv2.VideoCapture(0)
-        cv2.namedWindow("Video Capture Window", cv2.WINDOW_NORMAL) 
-        cv2.resizeWindow("Video Capture Window", 512, 400)
+        # cv2.namedWindow("Video Capture Window", cv2.WINDOW_NORMAL) 
+        # cv2.resizeWindow("Video Capture Window", 512, 400)
         # Mediapipe's ready-made face mesh technology.
         face_mesh = mp.solutions.face_mesh.FaceMesh(
             max_num_faces=1,
@@ -91,49 +91,52 @@ class GazeTracker():
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5)
         while True:
-            _, frame = cap.read()
+            _, self.frame = cap.read()
             # if not ret: 
             #     break
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            output = face_mesh.process(rgb_frame)
-            frame_h, frame_w = frame.shape[:2]
-            landmark_points = output.multi_face_landmarks
+            rgb_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
+            self.output = face_mesh.process(rgb_frame)
+            frame_h, frame_w = self.frame.shape[:2]
+            landmark_points = self.output.multi_face_landmarks
             if landmark_points:
                 landmarks = landmark_points[0].landmark
                 mesh_points = np.array([np.multiply([p.x, p.y],[frame_w, frame_h]).astype(int) for p in landmarks])
-                gaze_ratio_l = self.gaze_ratio(frame, 0, landmarks, frame_h, frame_w)
-                gaze_ratio_r = self.gaze_ratio(frame, 1, landmarks, frame_h, frame_w)
+                gaze_ratio_l = self.gaze_ratio(self.frame, 0, landmarks, frame_h, frame_w)
+                gaze_ratio_r = self.gaze_ratio(self.frame, 1, landmarks, frame_h, frame_w)
                 avg_gaze_ratio = (gaze_ratio_l + gaze_ratio_r) / 2
                 
                 # Highlighting eyes with circles.
-                ratio = self.closed_ratio(frame, mesh_points, RIGHT_EYE, LEFT_EYE)
+                ratio = self.closed_ratio(self.frame, mesh_points, RIGHT_EYE, LEFT_EYE)
                 (l_cx, l_cy), l_radius = cv2.minEnclosingCircle(mesh_points[LEFT_EYE])
                 (r_cx, r_cy), r_radius = cv2.minEnclosingCircle(mesh_points[RIGHT_EYE])
                 center_left = np.array([l_cx, l_cy], dtype=np.int32)
                 center_right = np.array([r_cx, r_cy], dtype=np.int32)
-                cv2.circle(frame, center_left, int(l_radius*.5), (0,255,0), 2, cv2.LINE_AA)
-                cv2.circle(frame, center_right, int(r_radius*.5), (0,255,0), 2, cv2.LINE_AA)
+                cv2.circle(self.frame, center_left, int(l_radius*.5), (0,255,0), 2, cv2.LINE_AA)
+                cv2.circle(self.frame, center_right, int(r_radius*.5), (0,255,0), 2, cv2.LINE_AA)
 
                 # Flip and add text for direction clarity.
-                frame = cv2.flip(frame, 1)
-                if avg_gaze_ratio < 0.9:
+                self.frame = cv2.flip(self.frame, 1)
+                if avg_gaze_ratio < 0.65:
                     print("RIGHT")
                     # cv2.putText(frame, 'RIGHT {f}'.format(f=avg_gaze_ratio), (50, frame_h-75), cv2.FONT_HERSHEY_COMPLEX, 2, (0,255,0), 2)
-                elif 0.9 <= avg_gaze_ratio < 2:
+                elif 0.65 <= avg_gaze_ratio < 2:
                     print("CENTER")
                     # cv2.putText(frame, 'CENTER {f}'.format(f=avg_gaze_ratio), (50, frame_h-75), cv2.FONT_HERSHEY_COMPLEX, 2, (0,255,0), 2)
                 else:
                     print("LEFT")
                     # cv2.putText(frame, 'LEFT {f}'.format(f=avg_gaze_ratio), (50, frame_h-75), cv2.FONT_HERSHEY_COMPLEX, 2, (0,255,0), 2)
+                global DISABLED
+                global TOTAL_BLINKS
                 if ratio >5.5:
                     DISABLED = True
                     # cv2.putText(frame, 'Eye(s) Closed: {f}'.format(f=TOTAL_BLINKS), (50, 75), cv2.FONT_HERSHEY_COMPLEX, 2, (0,255,0), 2)
                 else:
                     if DISABLED == True:
                         TOTAL_BLINKS +=1
+                        print("BLINKED")
                         DISABLED = not DISABLED
                 # cv2.imshow("Video Capture Window", frame)
-            if cv2.waitKey(1) == ord('q'):
+            if cv2.waitKey(1) == 27:
             # Breaks if 'q' is pressed and ends program.
             # TODO: change this into a trigger event for the Kivy program.
                 break

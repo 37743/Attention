@@ -9,8 +9,13 @@ from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, WipeTransition
 from kivy.core.window import Window
 from kivy.config import Config
+# Screens
 from include.screen import splash
+# JSON Reading
 import json
+# Eyetracker
+from script.EyeTracking.cv import GazeTracker
+from multiprocessing import Process
 # Disable graphical annotation
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
 # Window, resizeable
@@ -38,5 +43,9 @@ class Run(App):
         return "Attention\t-\t"+str(self.version_data['version'])\
             +"\t-\t"+str(self.version_data['config'][0]['date'])
 if __name__ == '__main__':
-    main = Run()
-    main.run()
+    main = Process(target=Run().run())
+    et = Process(target=GazeTracker())
+    main.start()
+    et.start()
+    main.join()
+    et.join()

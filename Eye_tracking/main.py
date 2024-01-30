@@ -78,6 +78,7 @@ class GazeTracker():
             leRatio = 0
         ratio = (reRatio+leRatio)/2
         return ratio
+    
     def __init__(self):
         # Captures the first device to cam-record.
         cap = cv2.VideoCapture(0)

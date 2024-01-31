@@ -1,2 +1,105 @@
-# Attention
+<div align="center">
+
+[NOTICE]: <> (Use "#region folding" extension by maptz for a better experience reading this file)
+
+<!-- #region(collapsed) [BUTTONS] -->
+<!-- [![DLOADS](https://img.shields.io/github/downloads/37743/Attention/total?style=for-the-badge&logo=)](https://github.com/37743/Attention/releases) -->
+[![LATEST](https://img.shields.io/badge/Empowering_People_of_Determination-09b5a9?style=for-the-badge&label=Hackathon&l&labelColor=5c2ba8)](https://hackathon.bu.edu.eg/)
+[![WEBSITE](https://img.shields.io/badge/check_out_our_website-5c2ba8?style=for-the-badge&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAYCAYAAAACqyaBAAAA0GVYSWZJSSoACAAAAAoAAAEEAAEAAAAfAAAAAQEEAAEAAAAYAAAAAgEDAAMAAACGAAAAEgEDAAEAAAABAAAAGgEFAAEAAACMAAAAGwEFAAEAAACUAAAAKAEDAAEAAAADAAAAMQECAA0AAACcAAAAMgECABQAAACqAAAAaYcEAAEAAAC+AAAAAAAAAAgACAAIAIkFAAAyAAAAiQUAADIAAABHSU1QIDIuMTAuMzYAADIwMjQ6MDE6MzEgMTg6MjY6MzAAAQABoAMAAQAAAAEAAAAAAAAAtWQpqQAAAYRpQ0NQSUNDIHByb2ZpbGUAAHicfZE9SMNQFIVPU6VSKh3sICKYoTrZRaU41ioUoUKoFVp1MHnpHzRpSVJcHAXXgoM/i1UHF2ddHVwFQfAHxNnBSdFFSrwvKbSI8cLjfZx3z+G9+wChVWWa2ZcANN0yMqmkmMuvioFX+DCGMOIIysysz0lSGp71dU/dVHcxnuXd92cNqgWTAT6ROMHqhkW8QRzftOqc94kjrCyrxOfEkwZdkPiR64rLb5xLDgs8M2JkM/PEEWKx1MNKD7OyoRHPEEdVTad8IeeyynmLs1ZtsM49+QtDBX1lmeu0RpHCIpYgQYSCBiqowkKMdp0UExk6T3r4Rxy/RC6FXBUwciygBg2y4wf/g9+zNYvTU25SKAn0v9j2xzgQ2AXaTdv+Prbt9gngfwau9K6/1gJmP0lvdrXoERDeBi6uu5qyB1zuAMNPddmQHclPSygWgfcz+qY8MHQLBNfcuXXOcfoAZGlW6Rvg4BCYKFH2use7B3rn9m9PZ34/s0hywH109WAAAA5baVRYdFhNTDpjb20uYWRvYmUueG1wAAAAAAA8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCI/Pgo8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIiB4OnhtcHRrPSJYTVAgQ29yZSA0LjQuMC1FeGl2MiI+CiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPgogIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiCiAgICB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIKICAgIHhtbG5zOnN0RXZ0PSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VFdmVudCMiCiAgICB4bWxuczpHSU1QPSJodHRwOi8vd3d3LmdpbXAub3JnL3htcC8iCiAgICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIKICAgeG1wTU06RG9jdW1lbnRJRD0iZ2ltcDpkb2NpZDpnaW1wOmRhNjdjMjA1LTAzYWUtNGYyNS04M2E0LWU3MmM5NzhhOGE0NCIKICAgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo2NWFjZmNkYi0xZmI4LTRkMzktOGM3OC1lMzIyMmJkZjE2ODIiCiAgIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo2NjgxNzkzMy02YjdmLTQyMTItYjI2Ni0xZjI0NzY4YzhhYTkiCiAgIEdJTVA6QVBJPSIyLjAiCiAgIEdJTVA6UGxhdGZvcm09IkxpbnV4IgogICBHSU1QOlRpbWVTdGFtcD0iMTcwNjcxODM5MDg5NzIwNyIKICAgR0lNUDpWZXJzaW9uPSIyLjEwLjM2IgogICBkYzpGb3JtYXQ9ImltYWdlL3BuZyIKICAgdGlmZjpPcmllbnRhdGlvbj0iMSIKICAgeG1wOkNyZWF0b3JUb29sPSJHSU1QIDIuMTAiCiAgIHhtcDpNZXRhZGF0YURhdGU9IjIwMjQ6MDE6MzFUMTg6MjY6MzArMDI6MDAiCiAgIHhtcDpNb2RpZnlEYXRlPSIyMDI0OjAxOjMxVDE4OjI2OjMwKzAyOjAwIj4KICAgPHhtcE1NOkhpc3Rvcnk+CiAgICA8cmRmOlNlcT4KICAgICA8cmRmOmxpCiAgICAgIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiCiAgICAgIHN0RXZ0OmNoYW5nZWQ9Ii8iCiAgICAgIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6ZDViYjAxN2MtY2QyOC00MGMwLTg2ZWItNmM4NWNhYTc5ZDUzIgogICAgICBzdEV2dDpzb2Z0d2FyZUFnZW50PSJHaW1wIDIuMTAgKExpbnV4KSIKICAgICAgc3RFdnQ6d2hlbj0iMjAyNC0wMS0zMVQxNzo1NDozMiswMjowMCIvPgogICAgIDxyZGY6bGkKICAgICAgc3RFdnQ6YWN0aW9uPSJzYXZlZCIKICAgICAgc3RFdnQ6Y2hhbmdlZD0iLyIKICAgICAgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDpiNjk3ODkyOS1lNWFhLTQ4OTUtOTMxMC02OGM1Njg4ZjRmZTgiCiAgICAgIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkdpbXAgMi4xMCAoTGludXgpIgogICAgICBzdEV2dDp3aGVuPSIyMDI0LTAxLTMxVDE4OjI2OjMwKzAyOjAwIi8+CiAgICA8L3JkZjpTZXE+CiAgIDwveG1wTU06SGlzdG9yeT4KICA8L3JkZjpEZXNjcmlwdGlvbj4KIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAKPD94cGFja2V0IGVuZD0idyI/Pu8JmWUAAAAGYktHRABcACsAqOi1G24AAAAJcEhZcwAACxIAAAsSAdLdfvwAAAAHdElNRQfoAR8QGh5V3Tn+AAACF0lEQVRIx72WO2gUURSGvztB2ETURCQBkSgqiAgRgoLBQlCj2FhYiY0gaqFICpuAaKfWphAbWxOwkIDgI6CCjdYmiCQoFtrkZXzFbHA/myusk91lZ53khynmcu75z4v/nsB/QN0JnAe6gHngGXA3hDBXz/1QJ8kB4FwkAXgDvAWuAIWU+XvgCPABIIRQajSzoN5US2bDZ/VT/B6o+7KQJmqPet18sKieroe4TR0xf/xQt5RzJekyA0PAYfJHC3CyVtaHXF7MqwNqy5LM45QuJwrAJWBQTZJUydtZGRwHepsicScwHA+nYoRJjctFYBZorlcrKmA6UQvAo+hkB9ABbALuVbk0EG06gG5gtEHyNtRT6rS6PjV8q9TR1MA8ie0pt9uuLjQwfNcSYDfwMoQw84/uhrAIjKSiHQ4hmLKbAMYyZr0ADCbAd2BdFaM1S0pVQYKB1gzEv4G+EMI46h61qO5POe1UZ1KlmlBbU3YnMmj/XJoH9Y76Re2PQnNB/VjFwah6Rj2q3lB/Zujzi0rK1qT2qWNRhZYDRfVgzfc89nAC2JqzsMwDm0MIkxUflji9Av1AKWfyZqCn6qtWFsB94CzwNecANmRZKtrVi+ot9VuNfj5Vf9XR94fq6kZWqr3qq5SzSfVy3Hy61Nvqc3VIHa8SwJTa3ehOt03tjfpQqGG7Vr2qvlbfqY/V2agJx1hpqBvVXX///wAuKP+MRIn9AQAAAABJRU5ErkJggg==)](https://37743.github.io/)
+<!-- #endregion -->
+
+<a>
+  <p align="center">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="app/doc/images/Readme_assets/BG.png">
+      <img height="125px" src="app/doc/images/Readme_assets/BG.png">
+    </picture>
+  </p>
+</a>
+
+</div>
+
+***
+
+# Attention! <img src="app/doc/icons/attention_icon.png" width="32">
 This project is a desktop application designed to assist individuals with disabilities in their pursuit of education by providing a supportive, interactive and accessible yet enjoyable learning environment.
+
+## Features:
+- Upload your own studying material, your own rules![^1]
+- Sign-up and compete with others for prestigious badges, aim for the best ranking!
+- Real-time assistive evaluation,we will support you throughout the whole process!
+- Personalized configuration, suit the application to your own needs![^2]
+- ... and more!
+
+## Usage
+1. Register for an account.
+   
+<div align="center">
+
+| ![insert_image1_here](app/doc/images/splash_screen/BG.png)|
+|:---:|
+| Registration Page |
+
+</div>
+
+1. Login using your credentials.
+
+<div align="center">
+
+| ![insert_image2_here](app/doc/images/splash_screen/BG.png)|
+|:---:|
+| Login Page |
+
+</div>
+
+2. Upload your document.
+
+<div align="center">
+
+| ![insert_image3_here](app/doc/images/splash_screen/BG.png)|
+|:---:|
+| Upload Page |
+
+</div>
+
+3. Start reading.
+
+<div align="center">
+
+| ![insert_image3_here](app/doc/images/splash_screen/BG.png)|
+|:---:|
+| Document Page |
+
+</div>
+
+1. Get rewarded with fantastic-looking badges.
+
+<div align="center">
+
+| ![insert_image3_here](app/doc/images/splash_screen/BG.png)|
+|:---:|
+| Account Page |
+
+</div>
+
+## Frequently Asked Questions (FAQ)
+
+-
+-
+-
+
+## Credits
+### Hackathon Members & Contributors
+
+- [@37743](https://github.com/37743) - **Yousef Gomaa**
+- [@ahmedfarghly001](https://github.com/ahmedfarghly001) - **Ahmed Farghly**
+- [@Desoky231](https://github.com/Desoky231) - **Abdelrahman Eldesoky**
+- [@e-ayman](https://github.com/e-ayman) - **Eyad Ayman**
+
+### Used Packages
+-
+-
+-
+
+[^1]: Text1
+[^2]: Text2

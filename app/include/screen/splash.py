@@ -9,9 +9,11 @@ from kivy.graphics import Rectangle
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
-from script.EyeTracking.utilities import DOSIS_FONT, YAHEI_FONT
+from script.EyeTracking.utilities import (DOSIS_FONT,
+                                          YAHEI_FONT)
 from kivy.core.text import LabelBase
-from kivy.clock import mainthread, Clock
+from kivy.clock import (mainthread,
+                        Clock)
 from kivy.animation import Animation
 import threading
 import time

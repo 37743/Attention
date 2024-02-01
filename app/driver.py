@@ -10,7 +10,7 @@ kivy.require('2.2.0')
 from kivy.config import Config
 # Disable graphical annotation
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
-Config.set('graphics', 'resizable', 0)
+# Config.set('graphics', 'resizable', 0)
 # Config.set('graphics', 'borderless', 1)
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, FadeTransition
@@ -21,7 +21,7 @@ from include.screen import login
 # JSON Reading
 import json
 # Eyetracker
-# from script.EyeTracking.cv import GazeTracker
+from script.EyeTracking.cv import GazeTracker
 from script.EyeTracking.utilities import WINDOW_SIZE
 Window.size = WINDOW_SIZE
 Window.left = int((1366-WINDOW_SIZE[0])/2)
@@ -47,7 +47,10 @@ class Run(App):
         self.title = self.get_title()
         self.splash = splash.Splash(name="Splash Screen")
         self.login = login.Login(name="Login Page")
-        screens = [self.splash, self.login]
+        screens = [
+                    self.splash,
+                    self.login
+                    ]
         for screen in screens:
             self.screen_manager.add_widget(screen)
         return self.screen_manager

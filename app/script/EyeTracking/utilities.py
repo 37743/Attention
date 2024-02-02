@@ -3,6 +3,16 @@
 # ---
 import math
 
+# Colors
+PURPLE = "5c2ba8"
+CYAN = "09b5a9"
+GRAY = "9b9b9b"
+
+# Fonts
+DOSIS_FONT = "doc/fonts/Dosis-ExtraBold.ttf"
+YAHEI_FONT = "doc/fonts/MicrosoftYaHeiUI.ttf"
+
+
 # Kivy Window Size
 WINDOW_SIZE = (1024, 640)
 

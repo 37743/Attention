@@ -11,8 +11,7 @@ from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
-from script.EyeTracking.utilities import (WINDOW_SIZE,
-                                          DOSIS_FONT,
+from script.EyeTracking.utilities import (DOSIS_FONT,
                                           YAHEI_FONT,
                                           GRAY,
                                           CYAN,
@@ -34,6 +33,8 @@ class Login(Screen, FloatLayout):
         self.bg.size = instance.size
 
     def _login_error(self):
+        ''' Shakes the layout, played when
+        credentials are false'''
         list = [self.login_panel,self.login_layout,
                 self.login_button,self.register_button]
         for widget in list:
@@ -49,6 +50,8 @@ class Login(Screen, FloatLayout):
             shake.start(widget)
 
     def _register_released(self, instance):
+        ''' Hides login panel and moves the decoration before 
+        changing screen to the register page'''
         list = [self.login_panel,self.login_layout,
                 self.login_result,self.login_button,
                 self.register_button,self.login_text]
@@ -65,8 +68,31 @@ class Login(Screen, FloatLayout):
                                         "center_y":widget.pos_hint['center_y']+factor},
                                         t="in_out_cubic", d=1)
             move.start(widget)
+            Clock.schedule_once(lambda dt: change_to_screen(screen="Register Page"), 2)
+            Clock.schedule_once(self._return_obj, 3)
+
+    def _return_obj(self, instance):
+        ''' Reverse of \'_register_released,\'
+          returns all widgets to place with full opacity'''
+        list = [self.login_panel,self.login_layout,
+        self.login_result,self.login_button,
+        self.register_button,self.login_text]
+        for widget in list:
+            shake = Animation(opacity=1, t="in_cubic", d=1)
+            shake.start(widget)
+        circles = [self.c1, self.c2]
+        for widget in circles:
+            if widget == self.c1:
+                factor = .05
+            else:
+                factor = -.05
+            move = Animation(pos_hint={"center_x": widget.pos_hint['center_x']+factor,
+                                        "center_y":widget.pos_hint['center_y']+factor},
+                                        t="in_out_cubic", d=1)
+            move.start(widget)
 
     def _login_released(self, instance):
+        ''' Connects to database and verifies the input credentials'''
         try:
             db_cred = App.get_running_app().db_cred
             cn = mysql.connector.connect(
@@ -92,7 +118,7 @@ class Login(Screen, FloatLayout):
     def __init__(self, **kwargs):
         super(Login, self).__init__(**kwargs)
         with self.canvas.before:
-            self.bg = Rectangle(source="doc/images/login_shapes/Background.png",
+            self.bg = Rectangle(source="doc/images/Login_shapes/Background.png",
                                 size=self.size,
                                 pos=self.pos)
         self.bind(size=self._update_bg, pos=self._update_bg)
@@ -136,7 +162,7 @@ class Login(Screen, FloatLayout):
                                   font_size=16,
                                   halign='center')
         self.login_text.add_widget(self.login_subtitle)
-        self.login_panel = Image(source="doc/images/login_shapes/login_reg.png",
+        self.login_panel = Image(source="doc/images/Login_shapes/Login_reg.png",
                                 size_hint=(None,None),
                                 size=(300,360),
                                 pos_hint={"center_x": .5, "center_y": .46},
@@ -172,8 +198,8 @@ class Login(Screen, FloatLayout):
                                 write_tab=False,
                                 padding=(10,10),
                                 hint_text = "",
-                                background_normal="doc/images/login_shapes/TextBox.png",
-                                background_active="doc/images/login_shapes/TextBox_active.png",
+                                background_normal="doc/images/Login_shapes/TextBox.png",
+                                background_active="doc/images/Login_shapes/TextBox_active.png",
                                 pos_hint={'center_x': .5, 'center_y': .5})
         self.login_layout.add_widget(self.user_box)
         self.pass_label = Label(text="Password",
@@ -193,8 +219,8 @@ class Login(Screen, FloatLayout):
                                 write_tab=False,
                                 padding=(10,10),
                                 hint_text = "",
-                                background_normal="doc/images/login_shapes/TextBox.png",
-                                background_active="doc/images/login_shapes/TextBox_active.png",
+                                background_normal="doc/images/Login_shapes/TextBox.png",
+                                background_active="doc/images/Login_shapes/TextBox_active.png",
                                 pos_hint={'center_x': .5, 'center_y': .5})
         self.login_layout.add_widget(self.pass_box)
         # Login & Create Account Button(s)
@@ -205,9 +231,9 @@ class Login(Screen, FloatLayout):
                             font_size=16,
                             pos_hint={'center_x': .5, 'center_y': .33},
                             background_normal=
-                            "doc/images/login_shapes/Btn1.png",
+                            "doc/images/Login_shapes/Btn1.png",
                             background_down=
-                            "doc/images/login_shapes/Btn1_down.png")
+                            "doc/images/Login_shapes/Btn1_down.png")
         self.login_button.bind(on_release=self._login_released)
         self.register_button = Button(text="Create an account", color = GRAY,
                             font_name="Dosis",
@@ -216,9 +242,9 @@ class Login(Screen, FloatLayout):
                             font_size=14,
                             pos_hint={'center_x': .5, 'center_y': .27},
                             background_normal=
-                            "doc/images/login_shapes/Btn_invis.png",
+                            "doc/images/Login_shapes/Btn_invis.png",
                             background_down=
-                            "doc/images/login_shapes/Btn_invis.png")
+                            "doc/images/Login_shapes/Btn_invis.png")
         self.register_button.bind(on_release=self._register_released)
         self.add_widget(self.login_text)
         self.add_widget(self.login_layout)

@@ -18,10 +18,12 @@ from kivy.core.window import Window
 Window.size = WINDOW_SIZE
 Window.left = int((1366-WINDOW_SIZE[0])/2)
 from kivy.app import App
-from kivy.uix.screenmanager import ScreenManager, FadeTransition
+from kivy.uix.screenmanager import (ScreenManager,
+                                    FadeTransition)
 # Screens
-from include.screen import splash
-from include.screen import login
+from include.screen import (splash,
+                            login,
+                            register)
 # JSON Reading
 import json
 # Multiprocessing
@@ -56,9 +58,11 @@ class Run(App):
         self.title = self.get_title()
         self.splash = splash.Splash(name="Splash Screen")
         self.login = login.Login(name="Login Page")
+        self.register = register.Register(name="Register Page")
         screens = [
-                    # self.splash,
-                    self.login
+                    self.splash,
+                    self.login,
+                    self.register
                     ]
         for screen in screens:
             self.screen_manager.add_widget(screen)

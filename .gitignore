@@ -1,3 +1,6 @@
+# MariaDB Connection Credentials
+app/include/config/sqlauth.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

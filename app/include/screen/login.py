@@ -11,12 +11,18 @@ from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
-from script.EyeTracking.utilities import (DOSIS_FONT,
+from script.EyeTracking.utilities import (WINDOW_SIZE,
+                                          DOSIS_FONT,
                                           YAHEI_FONT,
                                           GRAY,
                                           CYAN,
                                           PURPLE)
+from kivy.animation import Animation
 from kivy.core.text import LabelBase
+# MariaDB connector
+import mysql.connector
+import driver
+from kivy.clock import Clock
 
 def change_to_screen(*args, screen):
     App.get_running_app().screen_manager.current = screen
@@ -27,8 +33,61 @@ class Login(Screen, FloatLayout):
         self.bg.pos = instance.pos
         self.bg.size = instance.size
 
+    def _login_error(self):
+        list = [self.login_panel,self.login_layout,
+                self.login_button,self.register_button]
+        for widget in list:
+            shake = Animation(pos_hint={"center_x": .51,
+                                        "center_y": widget.pos_hint['center_y']},
+                                        t="in_out_elastic", d=.5)\
+                    + Animation(pos_hint={"center_x": .49,
+                                        "center_y": widget.pos_hint['center_y']},
+                                        t="in_out_elastic", d=.5)\
+                    + Animation(pos_hint={"center_x": .5,
+                                        "center_y": widget.pos_hint['center_y']},
+                                        t="in_out_elastic", d=.5)
+            shake.start(widget)
+
+    def _register_released(self, instance):
+        list = [self.login_panel,self.login_layout,
+                self.login_result,self.login_button,
+                self.register_button,self.login_text]
+        for widget in list:
+            shake = Animation(opacity=0, t="in_cubic", d=1)
+            shake.start(widget)
+        circles = [self.c1, self.c2]
+        for widget in circles:
+            if widget == self.c1:
+                factor = -.05
+            else:
+                factor = .05
+            move = Animation(pos_hint={"center_x": widget.pos_hint['center_x']+factor,
+                                        "center_y":widget.pos_hint['center_y']+factor},
+                                        t="in_out_cubic", d=1)
+            move.start(widget)
+
     def _login_released(self, instance):
-        pass
+        try:
+            db_cred = App.get_running_app().db_cred
+            cn = mysql.connector.connect(
+                            user=db_cred['user'],
+                            password=db_cred['password'],
+                            host=db_cred['host'],
+                            database=db_cred['database'])
+            print("Connected!")
+            cr = cn.cursor()
+            u=str(self.user_box.text)
+            p=str(self.pass_box.text)
+            cr.execute(f"SELECT verify_login(\'{u}\',\'{p}\') AS verify_login")
+            if cr.fetchall()[0][0] == 1:
+                self.login_result.text=""
+                pass
+            else:
+                self.login_result.text="Invalid Credentials! Try again."
+                self._login_error()
+            cn.close()
+        except mysql.connector.Error as e:
+            print(f"{e}")
 
     def __init__(self, **kwargs):
         super(Login, self).__init__(**kwargs)
@@ -49,16 +108,14 @@ class Login(Screen, FloatLayout):
         self.c1 = Image(source="doc/icons/C1.png",
                                 size_hint=(None,None),
                                 size=(200,200),
-                                allow_stretch=True,
-                                keep_ratio=True,
-                                pos_hint={"center_x": .36, "center_y": .24})
+                                pos_hint={"center_x": .36, "center_y": .24}
+                                )
         self.circles_decor.add_widget(self.c1)
         self.c2 = Image(source="doc/icons/C2.png",
                                 size_hint=(None,None),
                                 size=(250,250),
-                                allow_stretch=True,
-                                keep_ratio=True,
-                                pos_hint={"center_x": .7, "center_y": .56})
+                                pos_hint={"center_x": .7, "center_y": .56}
+                                )
         self.circles_decor.add_widget(self.c2)
         self.add_widget(self.circles_decor)
         # Login Header Text
@@ -83,16 +140,22 @@ class Login(Screen, FloatLayout):
                                 size_hint=(None,None),
                                 size=(300,360),
                                 pos_hint={"center_x": .5, "center_y": .46},
-                                allow_stretch=True,
-                                keep_ratio=True,
                                 opacity=.7)
         self.add_widget(self.login_panel)
         # Login Details
         self.login_layout = BoxLayout(orientation="vertical",
                                 size_hint=(None,None),
                                 size=(300,225),
+                                padding=(0,15),
                                 spacing=-40,
                                 pos_hint={'center_x': .5, 'center_y': .57},)
+        self.login_result = Label(text="",
+                                  font_name="Dosis",
+                                  size_hint=(1,.6),
+                                  color=CYAN,
+                                  font_size=16,
+                                  halign='center')
+        self.login_layout.add_widget(self.login_result)
         self.user_label = Label(text="Username",
                                 font_name="YaHei",
                                 color=GRAY,
@@ -107,7 +170,7 @@ class Login(Screen, FloatLayout):
                                 font_size=13,
                                 foreground_color=GRAY,
                                 write_tab=False,
-                                padding=(10,15),
+                                padding=(10,10),
                                 hint_text = "",
                                 background_normal="doc/images/login_shapes/TextBox.png",
                                 background_active="doc/images/login_shapes/TextBox_active.png",
@@ -128,7 +191,7 @@ class Login(Screen, FloatLayout):
                                 font_size=13,
                                 foreground_color=GRAY,
                                 write_tab=False,
-                                padding=(10,15),
+                                padding=(10,10),
                                 hint_text = "",
                                 background_normal="doc/images/login_shapes/TextBox.png",
                                 background_active="doc/images/login_shapes/TextBox_active.png",
@@ -156,6 +219,7 @@ class Login(Screen, FloatLayout):
                             "doc/images/login_shapes/Btn_invis.png",
                             background_down=
                             "doc/images/login_shapes/Btn_invis.png")
+        self.register_button.bind(on_release=self._register_released)
         self.add_widget(self.login_text)
         self.add_widget(self.login_layout)
         self.add_widget(self.login_button)

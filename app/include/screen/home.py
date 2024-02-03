@@ -61,11 +61,8 @@ class Home(Screen, FloatLayout):
     def _navigate(self, instance, final):
         init = self._get_curr()
         self._set_curr(new_curr=final)
-        if init == final:
-            return
-        else:
-            hide_layout(self=self, layout=init)
-            Clock.schedule_once(lambda dt: show_layout(self=self, layout=final), 1)
+        hide_layout(self=self, layout=init)
+        show_layout(self=self, layout=final)
 
     def _set_curr(self, new_curr):
         self.curr = new_curr

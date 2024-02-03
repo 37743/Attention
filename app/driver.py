@@ -23,7 +23,8 @@ from kivy.uix.screenmanager import (ScreenManager,
 # Screens
 from include.screen import (splash,
                             login,
-                            register)
+                            register,
+                            home)
 # JSON Reading
 import json
 # Multiprocessing
@@ -54,15 +55,19 @@ class Run(App):
         # TODO: Replace with an API that obtains the data.
         with open("app/include/config/sqlauth.json") as db_file:
                 self.db_cred = json.load(db_file)
+        # vv Stores current application user
+        self.user = ""
         self.icon = "doc/icons/attention_icon.png"
         self.title = self.get_title()
         self.splash = splash.Splash(name="Splash Screen")
         self.login = login.Login(name="Login Page")
         self.register = register.Register(name="Register Page")
+        self.home = home.Home(name="Home Page")
         screens = [
-                    self.splash,
-                    self.login,
-                    self.register
+                    # self.splash,
+                    # self.login,
+                    # self.register,
+                    self.home
                     ]
         for screen in screens:
             self.screen_manager.add_widget(screen)

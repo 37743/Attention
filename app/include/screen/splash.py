@@ -94,8 +94,6 @@ class Splash(Screen, FloatLayout):
         self.circle_fade = Image(source="doc/icons/C3.png",
                                 size_hint=(None,None),
                                 size=(0,0),
-                                allow_stretch=True,
-                                keep_ratio=True,
                                 opacity=1,
                                 pos_hint={"center_x": .5, "center_y": .5})
         self.circle_fade.texture.mag_filter = 'nearest'

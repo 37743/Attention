@@ -141,6 +141,7 @@ class Register(Screen, FloatLayout):
             cn.commit()
             cn.close()
             self.register_result.text="Successful registration!"
+            Clock.schedule_once(lambda dt: change_to_screen(screen="Login Page"), 2)
         except mysql.connector.Error as e:
             self.register_result.text="Invalid Credentials! Try again."
             self._register_error()
@@ -155,9 +156,8 @@ class Register(Screen, FloatLayout):
         self.bind(size=self._update_bg, pos=self._update_bg)
         LabelBase.register(name='Dosis', fn_regular=DOSIS_FONT)
         LabelBase.register(name='YaHei', fn_regular=YAHEI_FONT)
-        self.bw_logo = Image(source="doc/icons/logo_B&W.png",
+        self.bw_logo = Image(source="doc/icons/logo_B&W_small.png",
                             size_hint=(None,None),
-                            size=(90,90),
                             pos_hint={"center_x": .06, "center_y": .91})
         self.add_widget(self.bw_logo)
         # Decorative Circles

@@ -20,8 +20,8 @@ from kivy.animation import Animation
 from kivy.core.text import LabelBase
 # MariaDB connector
 import mysql.connector
-import driver
 from kivy.clock import Clock
+from include.screen import home
 
 def change_to_screen(*args, screen):
     App.get_running_app().screen_manager.current = screen
@@ -100,14 +100,15 @@ class Login(Screen, FloatLayout):
                             password=db_cred['password'],
                             host=db_cred['host'],
                             database=db_cred['database'])
-            print("Connected!")
             cr = cn.cursor()
-            u=str(self.user_box.text)
-            p=str(self.pass_box.text)
+            u, p= str(self.user_box.text), str(self.pass_box.text)
             cr.execute(f"SELECT verify_login(\'{u}\',\'{p}\') AS verify_login")
             if cr.fetchall()[0][0] == 1:
-                self.login_result.text=""
-                pass
+                self.login_result.text=f"Welcome, {u}!"
+                self.home = home.Home(name="Home Page")
+                App.get_running_app().user = u
+                App.get_running_app().screen_manager.add_widget(self.home)
+                Clock.schedule_once(lambda dt: change_to_screen(screen="Home Page"), 2)
             else:
                 self.login_result.text="Invalid Credentials! Try again."
                 self._login_error()
@@ -124,9 +125,8 @@ class Login(Screen, FloatLayout):
         self.bind(size=self._update_bg, pos=self._update_bg)
         LabelBase.register(name='Dosis', fn_regular=DOSIS_FONT)
         LabelBase.register(name='YaHei', fn_regular=YAHEI_FONT)
-        self.bw_logo = Image(source="doc/icons/logo_B&W.png",
+        self.bw_logo = Image(source="doc/icons/logo_B&W_small.png",
                             size_hint=(None,None),
-                            size=(90,90),
                             pos_hint={"center_x": .06, "center_y": .91})
         self.add_widget(self.bw_logo)
         # Decorative Circles

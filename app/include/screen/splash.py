@@ -5,7 +5,9 @@
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
+from kivy.properties import NumericProperty
 from kivy.graphics import Rectangle
+from kivy.lang import Builder
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
@@ -31,14 +33,14 @@ class Splash(Screen, FloatLayout):
         self.bg.pos = instance.pos
         self.bg.size = instance.size
 
-    def _loadprogram(self):
+    def _load_program(self):
         ''' Simulates a loading process with a placeholder time delay'''
         start_time = time.time()
         end_time = start_time + 3  # 3 seconds
         # TODO: Load actual material instead of placebo waiting time.
         while time.time() < end_time:
             Clock.schedule_once(lambda dt: self._update_loading_pct(start_time, end_time), 0)
-
+    
     @mainthread
     def _update_loading_pct(self, start_time, end_time, *args):
         ''' Updates the loading text label with the current progress percentage'''
@@ -58,7 +60,7 @@ class Splash(Screen, FloatLayout):
 
     def _login_thread(self, instance):
         ''' Start loading up the program, including database connection'''
-        login_thread = threading.Thread(target=self._loadprogram)
+        login_thread = threading.Thread(target=self._load_program)
         login_thread.start()
 
     def __init__(self, **kwargs):

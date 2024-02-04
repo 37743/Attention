@@ -147,7 +147,7 @@ class Home(Screen, FloatLayout):
     
     def _logout_released(self, instance):
         app = App.get_running_app()
-        app.login.login_result.text = ""
+        app.login.login_result.text = "Logged out!"
         app.login.pass_box.text = ""
         change_to_screen(screen="Login Page")
         Clock.schedule_once(lambda dt: app.screen_manager.remove_widget(app.home), 2)

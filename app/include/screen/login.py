@@ -176,7 +176,7 @@ class Login(Screen, FloatLayout):
                                 padding=(0,15),
                                 spacing=-40,
                                 pos_hint={'center_x': .5, 'center_y': .57},)
-        self.login_result = Label(text="",
+        self.login_result = Label(text="Kindly enter your credentials.",
                                   font_name="Dosis",
                                   size_hint=(1,.6),
                                   color=CYAN,

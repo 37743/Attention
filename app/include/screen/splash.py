@@ -95,6 +95,7 @@ class Splash(Screen, FloatLayout):
                                 size_hint=(None,None),
                                 size=(0,0),
                                 opacity=1,
+                                allow_stretch=True,
                                 pos_hint={"center_x": .5, "center_y": .5})
         self.circle_fade.texture.mag_filter = 'nearest'
         self.add_widget(self.circle_fade)

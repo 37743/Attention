@@ -22,7 +22,6 @@ from kivy.animation import Animation
 from kivy.core.text import LabelBase
 # MariaDB connector
 import mysql.connector
-import driver
 from kivy.clock import Clock
 
 def change_to_screen(*args, screen):

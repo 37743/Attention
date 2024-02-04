@@ -31,7 +31,6 @@ import json
 import threading
 # Eyetracker
 # from script.EyeTracking.cv import GazeTracker
-# MariaDB Authentication
 
 def thread(function):
     ''' Creates a new thread with a process using the input function'''
@@ -65,7 +64,7 @@ class Run(App):
         self.home = home.Home(name="Home Page")
         screens = [
                     # self.splash,
-                    # self.login,
+                    self.login,
                     # self.register,
                     self.home
                     ]

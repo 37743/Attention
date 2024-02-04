@@ -97,6 +97,16 @@ class Home(Screen, FloatLayout):
                     self.add_text.text = self.file_path.rsplit("/")[-1]
     
     def _upload_file(self, instance):
+        showtext = Animation(opacity=1, d=.5)
+        hidetext = Animation(opacity=0, d=.5)
+        self.mat_result = Label(text="Kindly upload a file!",
+                                font_name="Dosis",
+                                color=CYAN,
+                                font_size=22,
+                                halign='center',
+                                opacity=0,
+                                pos_hint={"center_x": .5, "center_y": 1.3})
+        self.add_layout.add_widget(self.mat_result)
         if (self.file_path):
             try:
                 db_cred = App.get_running_app().db_cred
@@ -108,22 +118,26 @@ class Home(Screen, FloatLayout):
                 print("Connected!")
                 cr = cn.cursor()
                 b = open(self.file_path, "rb").read()
-                d = self.file_path.rsplit(".")[1]
+                n,d = self.file_path.rsplit("/")[-1].rsplit(".")
                 u = App.get_running_app().user
-                sql = "CALL add_doc(%s,%s,%s)"
-                cr.execute(sql, (b,d,u))
+                sql = "CALL add_doc(%s,%s,%s,%s)"
+                cr.execute(sql, (b,n,d,u))
                 cn.commit()
                 cn.close()
                 for widget in ToggleButtonBehavior.get_widgets(groupname="mat"):
                     widget.state = "normal"
                     widget.source = widget.up_state
-                self.file_path = None
-                self.add_panel_icon.source="app/doc/images/Add_page/add_file.png"
-                self.add_text.text = "ADD NEW MATERIAL"
-                self.add_text.pos_hint ={"center_x": .5, "center_y": .43}
-                print("Success!")
+                self.mat_result.text = "File uploaded successfully!"
             except mysql.connector.Error as e:
+                self.mat_result.text = "ERROR: Re-name or change the file!"
                 print(f"{e}")
+        self.file_path = ""
+        self.add_panel_icon.source="app/doc/images/Add_page/add_file.png"
+        self.add_text.text = "ADD NEW MATERIAL"
+        self.add_text.pos_hint ={"center_x": .5, "center_y": .43}
+        Clock.schedule_once(lambda dt: showtext.start(self.mat_result), .5)
+        Clock.schedule_once(lambda dt: hidetext.start(self.mat_result), 5)
+        Clock.schedule_once(lambda dt: self.add_layout.remove_widget(self.mat_result), 6)
 
     def _set_curr(self, new_curr):
         self.curr = new_curr
@@ -146,6 +160,7 @@ class Home(Screen, FloatLayout):
         self.add_widget(self.bw_logo)
         # Navigation Bar
         self.curr = "home"
+        self.file_path = ""
         self.nav_bar = BoxLayout(orientation="vertical",
                                  size_hint=(1,.5),
                                  pos_hint={"center_x": .05, "center_y": .5})
@@ -174,15 +189,15 @@ class Home(Screen, FloatLayout):
         self.add_icon = Image(source="doc/icons/add.png",
                                 size_hint=(None,None),
                                 pos_hint={"center_x": .5, "center_y": .5})
-        # Star Navigation
-        self.star_nav = FloatLayout()
-        self.star_but = ToggleButton(group="nav",
+        # book Navigation
+        self.book_nav = FloatLayout()
+        self.book_but = ToggleButton(group="nav",
                                      size_hint=(None,None),
                                      size=(52,56),
                                      pos_hint={'center_x': .5, 'center_y': .5})
-        self.star_but.bind(on_release=partial(self._navigate,
-                                              final="star"))
-        self.star_icon = Image(source="doc/icons/star.png",
+        self.book_but.bind(on_release=partial(self._navigate,
+                                              final="book"))
+        self.book_icon = Image(source="doc/icons/book.png",
                                 size_hint=(None,None),
                                 pos_hint={"center_x": .5, "center_y": .5})
         # Profile Navigation
@@ -293,14 +308,14 @@ class Home(Screen, FloatLayout):
         self.add_layout.add_widget(self.mat_layout)
         self.add_layout.add_widget(self.upload_button)
         self.add_widget(self.add_layout)
-        # Star Layout
-        self.star_layout = FloatLayout(pos_hint={"center_x": 5, "center_y": .5},
+        # Reading Layout
+        self.book_layout = FloatLayout(pos_hint={"center_x": 5, "center_y": .5},
                                       opacity=0)
-        self.star_panel = Image(source="app/doc/images/Home_page_shapes/panel_reg.png",
+        self.book_panel = Image(source="app/doc/images/Home_page_shapes/panel_reg.png",
                                 size_hint=(None,None),
                                 size=(500,500),
                                 pos_hint={"center_x": .5, "center_y": .5})
-        self.star_title = Label(text="Star Panel Test",
+        self.book_title = Label(text="Book Panel Test",
                                   font_name="Dosis",
                                   color=PURPLE,
                                   font_size=36,
@@ -319,11 +334,11 @@ class Home(Screen, FloatLayout):
                                   font_size=36,
                                   halign='center',
                                   pos_hint={"center_x": .5, "center_y": .5})
-        for widget in ["home","add","star","profile"]:
+        for widget in ["home","add","book","profile"]:
             exec(f"self.{widget}_nav.add_widget(self.{widget}_but)")
             exec(f"self.{widget}_nav.add_widget(self.{widget}_icon)")
             exec(f"self.nav_bar.add_widget(self.{widget}_nav)")
-        for widget in ["home","star","profile"]:
+        for widget in ["home","book","profile"]:
             exec(f"self.{widget}_layout.add_widget(self.{widget}_panel)")
             exec(f"self.{widget}_layout.add_widget(self.{widget}_title)")
             exec(f"self.add_widget(self.{widget}_layout)")

@@ -61,12 +61,12 @@ class Run(App):
         self.splash = splash.Splash(name="Splash Screen")
         self.login = login.Login(name="Login Page")
         self.register = register.Register(name="Register Page")
-        self.home = home.Home(name="Home Page")
+        # self.home = home.Home(name="Home Page")
         screens = [
                     # self.splash,
                     self.login,
-                    # self.register,
-                    self.home
+                    self.register,
+                    # self.home
                     ]
         for screen in screens:
             self.screen_manager.add_widget(screen)

@@ -94,7 +94,8 @@ class Login(Screen, FloatLayout):
     def _login_released(self, instance):
         ''' Connects to database and verifies the input credentials'''
         try:
-            db_cred = App.get_running_app().db_cred
+            app = App.get_running_app()
+            db_cred = app.db_cred
             cn = mysql.connector.connect(
                             user=db_cred['user'],
                             password=db_cred['password'],
@@ -105,9 +106,9 @@ class Login(Screen, FloatLayout):
             cr.execute(f"SELECT verify_login(\'{u}\',\'{p}\') AS verify_login")
             if cr.fetchall()[0][0] == 1:
                 self.login_result.text=f"Welcome, {u}!"
-                self.home = home.Home(name="Home Page")
-                App.get_running_app().user = u
-                App.get_running_app().screen_manager.add_widget(self.home)
+                app.home = home.Home(name="Home Page")
+                app.user = u
+                app.screen_manager.add_widget(app.home)
                 Clock.schedule_once(lambda dt: change_to_screen(screen="Home Page"), 2)
             else:
                 self.login_result.text="Invalid Credentials! Try again."

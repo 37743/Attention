@@ -145,6 +145,13 @@ class Home(Screen, FloatLayout):
     def _get_curr(self):
         return self.curr
     
+    def _logout_released(self, instance):
+        app = App.get_running_app()
+        app.login.login_result.text = ""
+        app.login.pass_box.text = ""
+        change_to_screen(screen="Login Page")
+        Clock.schedule_once(lambda dt: app.screen_manager.remove_widget(app.home), 2)
+    
     def __init__(self, **kwargs):
         super(Home, self).__init__(**kwargs)
         with self.canvas.before:
@@ -343,6 +350,17 @@ class Home(Screen, FloatLayout):
             exec(f"self.{widget}_layout.add_widget(self.{widget}_title)")
             exec(f"self.add_widget(self.{widget}_layout)")
         self.add_widget(self.nav_bar)
+        # Logout button
+        self.logout_but = Button(text="",
+                                size_hint=(None,None),
+                                size=(52,56),
+                                pos_hint={'center_x': .05, 'center_y': .1},
+                                background_normal=
+                                "doc/images/Home_page_shapes/logout_invis.png",
+                                background_down=
+                                "doc/images/Home_page_shapes/logout_shadow.png")
+        self.logout_but.bind(on_release=self._logout_released)
+        self.add_widget(self.logout_but)
         self.footer = Label(text="EGYPT-JAPAN UNIVERSITY OF SCIENCE AND TECHNOLOGY x BENHA UNIVERSITY HACKATHON - 2024",
                              color = PURPLE,
                              font_name="Dosis",

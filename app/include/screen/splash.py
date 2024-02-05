@@ -5,13 +5,11 @@
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import NumericProperty
 from kivy.graphics import Rectangle
-from kivy.lang import Builder
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
-from script.EyeTracking.utilities import (DOSIS_FONT,
+from script.eyetracking.utilities import (DOSIS_FONT,
                                           YAHEI_FONT)
 from kivy.core.text import LabelBase
 from kivy.clock import (mainthread,

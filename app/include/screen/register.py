@@ -11,15 +11,16 @@ from kivy.graphics import Rectangle
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
+from kivy.animation import Animation
+from kivy.core.text import LabelBase
 from kivy.uix.textinput import TextInput
-from script.EyeTracking.utilities import (WINDOW_SIZE,
-                                          DOSIS_FONT,
+# Scripts & Variables
+from script.eyetracking.utilities import (DOSIS_FONT,
                                           YAHEI_FONT,
                                           GRAY,
                                           CYAN,
                                           PURPLE)
-from kivy.animation import Animation
-from kivy.core.text import LabelBase
+from script.datetextinput import DateTextInput
 # MariaDB connector
 import mysql.connector
 from kivy.clock import Clock
@@ -27,23 +28,6 @@ from kivy.clock import Clock
 def change_to_screen(*args, screen):
     App.get_running_app().screen_manager.current = screen
     return
-
-class DateTextInput(TextInput):
-    ''' Inherits from TextInput,
-    limits number of characters to 2'''
-    max_characters = 2
-    def insert_text(self, substring, from_undo=False):
-        if len(self.text) >= self.max_characters and self.max_characters >= 0:
-            substring = ""
-        TextInput.insert_text(self, substring, from_undo)
-        if self.text != ""\
-              and self.hint_text == "MM"\
-                  and int(self.text) > 12:
-            self.text = ""
-        if self.text != ""\
-              and self.hint_text == "DD"\
-                  and int(self.text)> 31:
-            self.text = "" 
 
 class Register(Screen, FloatLayout):
     def _update_bg(self, instance, value):
@@ -69,7 +53,7 @@ class Register(Screen, FloatLayout):
     def _login_released(self, instance):
         list = [self.register_panel,self.register_layout,
                 self.register_button,self.loginp_button,
-                self.loginp_button,self.register_text,
+                self.loginp_button,self.register_text_layout,
                 self.register_result]
         for widget in list:
             shake = Animation(opacity=0, t="in_cubic", d=1)
@@ -90,7 +74,7 @@ class Register(Screen, FloatLayout):
     def _return_obj(self, instance):
         list = [self.register_panel,self.register_layout,
                 self.register_button,self.loginp_button,
-                self.loginp_button,self.register_text,
+                self.loginp_button,self.register_text_layout,
                 self.register_result]
         for widget in list:
             shake = Animation(opacity=1, t="in_cubic", d=1)
@@ -116,6 +100,9 @@ class Register(Screen, FloatLayout):
                 self.register_result.text="Kindly fill all credentials."
                 self._register_error()
                 return
+        if (len(self.pass_box.text) < 6):
+            self.register_result.text="Password is too short!"
+            return
         if (self.pass_box.text != self.conf_box.text):
             self.register_result.text="Passwords do not match!"
             self._register_error()
@@ -175,7 +162,7 @@ class Register(Screen, FloatLayout):
         self.circles_decor.add_widget(self.c2)
         self.add_widget(self.circles_decor)
         # Register Header Text
-        self.register_text = BoxLayout(orientation="vertical",
+        self.register_text_layout = BoxLayout(orientation="vertical",
                                       size_hint=(None,None),
                                       size=(500,80),
                                       spacing=-10,
@@ -185,13 +172,13 @@ class Register(Screen, FloatLayout):
                                   color=PURPLE,
                                   font_size=36,
                                   halign='center')
-        self.register_text.add_widget(self.register_title)
+        self.register_text_layout.add_widget(self.register_title)
         self.register_subtitle = Label(text="Free forever, no worries",
                                   font_name="YaHei",
                                   color=GRAY,
                                   font_size=16,
                                   halign='center')
-        self.register_text.add_widget(self.register_subtitle)
+        self.register_text_layout.add_widget(self.register_subtitle)
         self.register_panel = Image(source="doc/images/Register_shapes/Register_reg.png",
                                 size_hint=(None,None),
                                 size=(540,395),
@@ -218,7 +205,7 @@ class Register(Screen, FloatLayout):
         self.user_layout = BoxLayout(orientation="vertical",
                                     size=(200,70),
                                     spacing=-40)
-        self.user_label = Label(text="Username",
+        self.user_label = Label(text="Username (*)",
                                 font_name="YaHei",
                                 color=GRAY,
                                 font_size=13,
@@ -243,7 +230,7 @@ class Register(Screen, FloatLayout):
         self.pass_layout = BoxLayout(orientation="vertical",
                                     size=(200,70),
                                     spacing=-40)
-        self.pass_label = Label(text="Password",
+        self.pass_label = Label(text="Password (*)",
                                 font_name="YaHei",
                                 color=GRAY,
                                 font_size=13,
@@ -269,7 +256,7 @@ class Register(Screen, FloatLayout):
         self.conf_layout = BoxLayout(orientation="vertical",
                                     size=(200,70),
                                     spacing=-40)
-        self.conf_label = Label(text="Confirmed Password",
+        self.conf_label = Label(text="Confirmed Password (*)",
                                 font_name="YaHei",
                                 color=GRAY,
                                 font_size=13,
@@ -295,7 +282,7 @@ class Register(Screen, FloatLayout):
         self.mail_layout = BoxLayout(orientation="vertical",
                                     size=(200,70),
                                     spacing=-40)
-        self.mail_label = Label(text="Email",
+        self.mail_label = Label(text="Email (*)",
                                 font_name="YaHei",
                                 color=GRAY,
                                 font_size=13,
@@ -345,7 +332,7 @@ class Register(Screen, FloatLayout):
         self.bd_layout = BoxLayout(orientation="vertical",
                                     size=(200,70),
                                     spacing=-40)
-        self.bd_label = Label(text="Birth Date",
+        self.bd_label = Label(text="Birth Date (*)",
                                 font_name="YaHei",
                                 color=GRAY,
                                 font_size=13,
@@ -417,7 +404,7 @@ class Register(Screen, FloatLayout):
                             background_down=
                             "doc/images/Register_shapes/Btn_invis.png")
         self.loginp_button.bind(on_release=self._login_released)
-        self.add_widget(self.register_text)
+        self.add_widget(self.register_text_layout)
         self.add_widget(self.register_layout)
         self.add_widget(self.register_button)
         self.add_widget(self.loginp_button)

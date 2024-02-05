@@ -13,7 +13,7 @@ from kivy.config import Config
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
 Config.set('graphics', 'resizable', 0)
 # Config.set('graphics', 'borderless', 1)
-from script.EyeTracking.utilities import WINDOW_SIZE
+from script.eyetracking.utilities import WINDOW_SIZE
 from kivy.core.window import Window
 Window.size = WINDOW_SIZE
 Window.left = int((1366-WINDOW_SIZE[0])/2)
@@ -23,8 +23,8 @@ from kivy.uix.screenmanager import (ScreenManager,
 # Screens
 from include.screen import (splash,
                             login,
-                            register,
-                            home)
+                            register
+                            )
 # JSON Reading
 import json
 # Multiprocessing
@@ -61,12 +61,10 @@ class Run(App):
         self.splash = splash.Splash(name="Splash Screen")
         self.login = login.Login(name="Login Page")
         self.register = register.Register(name="Register Page")
-        # self.home = home.Home(name="Home Page")
         screens = [
                     # self.splash,
                     self.login,
                     self.register,
-                    # self.home
                     ]
         for screen in screens:
             self.screen_manager.add_widget(screen)

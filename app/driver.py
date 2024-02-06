@@ -51,7 +51,7 @@ class Run(App):
             self.version_data = json.load(json_file)
         self.db_cred = {}
         # File is omitted, added to .gitignore for security reasons. ^^
-        # TODO: Replace with an API that obtains the data.
+        # TODO: Repl`ace with an API that obtains the data.
         with open("app/include/config/sqlauth.json") as db_file:
                 self.db_cred = json.load(db_file)
         # vv Stores current application user
@@ -80,6 +80,9 @@ class Run(App):
         return "Attention\t-\t"+str(self.version_data['version'])\
             +"\t-\t"+str(self.version_data['config'][0]['date'])
     
+    def open_settings(self, *largs):
+        pass
+
 if __name__ == '__main__':
     main = Run()
     main.run()

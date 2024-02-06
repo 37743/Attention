@@ -14,6 +14,7 @@ from kivy.uix.label import Label
 from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.core.text import LabelBase
 from kivy.uix.textinput import TextInput
+from kivy.uix.scrollview import ScrollView
 from kivy.animation import Animation
 from functools import partial
 from kivy.clock import Clock
@@ -31,7 +32,10 @@ import tkinter as tk
 from tkinter import filedialog
 # MariaDB connector
 import mysql.connector
-# Binary Encoder/Decoder
+# PDF Text Extraction
+import threading
+from io import BytesIO
+from pdfminer.high_level import extract_text
 
 def change_to_screen(*args, screen):
     App.get_running_app().screen_manager.current = screen
@@ -58,12 +62,19 @@ def show_layout(*args, self, layout):
         show_again.start(self.profile_border)
     exec(f"show.start({layout})")
 
-
 def make_img(encoded_data):
     filepath="app/doc/images/Profile_page/profile_pic.jpg"
     with open(filepath, 'wb') as f:
         f.write(encoded_data)
     return filepath
+
+def thread(function):
+    ''' Creates a new thread with a process using the input function'''
+    def wrap(*args, **kwargs):
+        t = threading.Thread(target=function, args=args, kwargs=kwargs, daemon=True)
+        t.start()
+        return t
+    return wrap
 
 class Home(Screen, FloatLayout):
     def _update_bg(self, instance, value):
@@ -137,6 +148,64 @@ class Home(Screen, FloatLayout):
         Clock.schedule_once(lambda dt: showtext.start(self.mat_result), .5)
         Clock.schedule_once(lambda dt: hidetext.start(self.mat_result), 5)
         Clock.schedule_once(lambda dt: self.add_layout.remove_widget(self.mat_result), 6)
+
+    def _update_txt(self, new_text):
+        print(new_text)
+        self.doc_text.text = new_text[:494]
+
+    @thread
+    def _extract_pdf(self, input):
+        self.document_text = extract_text(BytesIO(input))
+        self._update_txt(self.document_text)
+
+    def _read_doc(self, instance, doc):
+        if (self.book_title.text == self.documents[doc][0]):
+            return
+        self.doc_text.text = "Loading.."
+        self.book_title.text = self.documents[doc][0]
+        self._extract_pdf(input=self.documents[doc][1])
+        return
+    
+    def _refresh_doc(self, instance):
+        self.doc_layout.clear_widgets()
+        result=[]
+        try:
+            db_cred = App.get_running_app().db_cred
+            cn = mysql.connector.connect(
+                            user=db_cred['user'],
+                            password=db_cred['password'],
+                            host=db_cred['host'],
+                            database=db_cred['database'])
+            print("Connected!")
+            cr = cn.cursor()
+            u = self.user
+            cr.callproc("get_doc", (u,))
+            for res in cr.stored_results():
+                fetch = res.fetchall()
+                for row in fetch:
+                    result.append(row)
+            cn.close()
+        except mysql.connector.Error as e:
+            print(f"{e}")
+        self.documents = result
+        for doc in self.documents:
+            doc_name = doc[0]
+            if (len(doc[0])>10):
+                doc_name = doc[0][:10]+".."
+            self.doc_layout.add_widget(Button(text=doc_name,
+                                              font_name="Dosis",
+                                              size=(125,35),
+                                              color=PURPLE,
+                                              font_size=16,
+                                              background_normal=
+                                              "doc/images/Reading_page/btn_invis.png",
+                                              background_down=
+                                              "doc/images/Reading_page/btn_shadow.png"))
+        # Kivy inserts new widgets at index 0,
+        # here we reverse the list to get the correct order.
+        for idx, widget in enumerate(reversed(self.doc_layout.children)):
+            widget.bind(on_release=partial(self._read_doc, doc=idx))
+        return
 
     def _update_password(self, user, cursor):
         if ((len(self.pass_box.text) < 6)\
@@ -214,18 +283,13 @@ class Home(Screen, FloatLayout):
         
     def _get_badge(self, xp):
         if xp <= 1000:
-            return ("bronze",1000)
+            return ("dash",1000)
         elif xp <= 3000:
-            return ("silver",3000)
+            return ("bronze",3000)
+        elif xp <= 5000:
+            return ("silver",5000)
         else:
             return ("gold",9999999)
-        
-    def _logout_released(self, instance):
-        app = App.get_running_app()
-        app.login.login_result.text = "Logged out!"
-        app.login.pass_box.text = ""
-        change_to_screen(screen="Login Page")
-        Clock.schedule_once(lambda dt: app.screen_manager.remove_widget(app.home), 2)
 
     def _add_pfp(self, instance):
         root = tk.Tk()
@@ -238,6 +302,13 @@ class Home(Screen, FloatLayout):
                 if self.file_path.rsplit(".")[1] == type:
                     self.profile_pic.source = self.file_path
 
+    def _logout_released(self, instance):
+        app = App.get_running_app()
+        app.login.login_result.text = "Logged out!"
+        app.login.pass_box.text = ""
+        change_to_screen(screen="Login Page")
+        Clock.schedule_once(lambda dt: app.screen_manager.remove_widget(app.home), 2)
+        
     def __init__(self, **kwargs):
         super(Home, self).__init__(**kwargs)
         with self.canvas.before:
@@ -251,10 +322,12 @@ class Home(Screen, FloatLayout):
                             size_hint=(None,None),
                             pos_hint={"center_x": .06, "center_y": .91})
         self.add_widget(self.bw_logo)
-        #region Navigation Bar
+        # User's Essentials
+        self.user = App.get_running_app().user
         self.curr = "home"
         self.file_path = ""
-        self.user = App.get_running_app().user
+        self.documents = []
+        #region Navigation Bar
         self.nav_bar = BoxLayout(orientation="vertical",
                                  size_hint=(1,.5),
                                  pos_hint={"center_x": .05, "center_y": .5})
@@ -418,7 +491,7 @@ class Home(Screen, FloatLayout):
                                   color=PURPLE,
                                   font_size=36,
                                   halign='center',
-                                  pos_hint={"center_x": .5, "center_y": .91})
+                                  pos_hint={"center_x": .5, "center_y": .92})
         self.book_mat_layout = FloatLayout(pos_hint={"center_x": .85, "center_y": .5})
         self.book_panel2 = Image(source="app/doc/images/Home_page_shapes/book_panel_2.png",
                                 size_hint=(None,None),
@@ -431,7 +504,32 @@ class Home(Screen, FloatLayout):
                                   color=GRAY,
                                   font_size=36,
                                   halign='center',
-                                  pos_hint={"center_x": .5, "center_y": .91})
+                                  pos_hint={"center_x": .5, "center_y": .92})
+        self.doc_scroll = ScrollView(size=(150,390),
+                                     size_hint=(None, None),
+                                     pos_hint={"center_x": .5, "center_y": .53},
+                                     bar_color = PURPLE,
+                                     bar_inactive_color = GRAY,
+                                     bar_width = 8,
+                                     scroll_type = ['bars','content'])
+        self.doc_layout = GridLayout(cols=1,
+                                     spacing=5,
+                                     col_default_width=125,
+                                     col_force_default=True,
+                                     row_default_height=35,
+                                     row_force_default=True,
+                                     size_hint_y=None)
+        self.doc_layout.bind(minimum_height=self.doc_layout.setter('height'))
+        self.doc_scroll.add_widget(self.doc_layout)
+        self.doc_text = Label(text="",
+                              text_size=(450,500),
+                              size=(450,500),
+                              font_name="YaHei",
+                              color=PURPLE,
+                              font_size=16,
+                              halign='left',
+                              valign='top',
+                              pos_hint={"center_x": .505, "center_y": .45})   
         self.refresh_but = Button(text="",
                                 size_hint=(None,None),
                                 size=(52,56),
@@ -440,9 +538,12 @@ class Home(Screen, FloatLayout):
                                 "doc/images/Reading_page/refresh.png",
                                 background_down=
                                 "doc/images/Reading_page/refresh_down.png")
+        self.refresh_but.bind(on_release=self._refresh_doc)
         self.book_layout.add_widget(self.book_panel)
+        self.book_layout.add_widget(self.doc_text)
         self.book_layout.add_widget(self.book_title)
         self.book_mat_layout.add_widget(self.book_panel2)
+        self.book_mat_layout.add_widget(self.doc_scroll)
         self.book_mat_layout.add_widget(self.book_timer)
         self.book_mat_layout.add_widget(self.refresh_but)
         self.book_layout.add_widget(self.book_mat_layout)

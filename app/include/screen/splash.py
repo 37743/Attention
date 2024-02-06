@@ -23,6 +23,14 @@ def change_to_screen(*args, screen):
     App.get_running_app().screen_manager.current = screen
     return
 
+def thread(function):
+    ''' Creates a new thread with a process using the input function'''
+    def wrap(*args, **kwargs):
+        t = threading.Thread(target=function, args=args, kwargs=kwargs, daemon=True)
+        t.start()
+        return t
+    return wrap
+
 class Splash(Screen, FloatLayout):
     ''' Represents the Splash Screen'''
     def _update_bg(self, instance, value):
@@ -31,22 +39,31 @@ class Splash(Screen, FloatLayout):
         self.bg.pos = instance.pos
         self.bg.size = instance.size
 
-    def _load_program(self):
+    def _load_program(self, instance):
         ''' Simulates a loading process with a placeholder time delay'''
         start_time = time.time()
-        end_time = start_time + 3  # 3 seconds
+        end_time = start_time + 6  # 6 seconds
         # TODO: Load actual material instead of placebo waiting time.
-        while time.time() < end_time:
-            Clock.schedule_once(lambda dt: self._update_loading_pct(start_time, end_time), 0)
+        self._update_loading_pct(start_time, end_time)
     
     @mainthread
+    def _update_pct(self, new_pct):
+        self.loading_text.text = "Loading.. {p}%".format(p=new_pct)
+
+    @thread
     def _update_loading_pct(self, start_time, end_time, *args):
         ''' Updates the loading text label with the current progress percentage'''
-        current_time = time.time()
-        progress_percentage = min(100, round((current_time - start_time) * 100 / (end_time - start_time)))
-        self.loading_text.text = "Loading.. {p}%".format(p=progress_percentage)
+        now = time.time()
+        while now < end_time:
+            prog_pct = min(100, round((time.time() - start_time) * 100 / (end_time - start_time)))
+            self._update_pct(prog_pct)
+            if (prog_pct == 100):
+                print(prog_pct)
+                splashanim = Animation(size=(1500,1500), t="in_back", d=2)
+                splashanim.start(self.circle_fade)
+                Clock.schedule_once(lambda dt: change_to_screen(screen="Login Page"), 3)
+                break
 
-    @mainthread
     def _login_released(self, instance):
         '''  Triggers on button release, 
         starting an animation and changing the screen after a delay'''
@@ -76,7 +93,7 @@ class Splash(Screen, FloatLayout):
                                  pos_hint={"center_x": .5, "center_y": .6},
                                  background_normal="doc/icons/logo_c.png",
                                  background_down="doc/icons/logo_B&W.png")
-        self.logobutton.bind(on_release=self._login_thread)
+        self.logobutton.bind(on_release=self._load_program)
         self.loading_text = Label(text="Press to boot-up!",
                                   font_name="Dosis",
                                   color="ffffff",
@@ -99,4 +116,3 @@ class Splash(Screen, FloatLayout):
                                 pos_hint={"center_x": .5, "center_y": .5})
         self.circle_fade.texture.mag_filter = 'nearest'
         self.add_widget(self.circle_fade)
-        self.check_click = Clock.schedule_interval(self._login_released, 4)

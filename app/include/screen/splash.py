@@ -9,7 +9,7 @@ from kivy.graphics import Rectangle
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
-from script.EyeTracking.utilities import (DOSIS_FONT,
+from script.eyetracking.utilities import (DOSIS_FONT,
                                           YAHEI_FONT)
 from kivy.core.text import LabelBase
 from kivy.clock import (mainthread,
@@ -31,14 +31,14 @@ class Splash(Screen, FloatLayout):
         self.bg.pos = instance.pos
         self.bg.size = instance.size
 
-    def _loadprogram(self):
+    def _load_program(self):
         ''' Simulates a loading process with a placeholder time delay'''
         start_time = time.time()
         end_time = start_time + 3  # 3 seconds
         # TODO: Load actual material instead of placebo waiting time.
         while time.time() < end_time:
             Clock.schedule_once(lambda dt: self._update_loading_pct(start_time, end_time), 0)
-
+    
     @mainthread
     def _update_loading_pct(self, start_time, end_time, *args):
         ''' Updates the loading text label with the current progress percentage'''
@@ -58,7 +58,7 @@ class Splash(Screen, FloatLayout):
 
     def _login_thread(self, instance):
         ''' Start loading up the program, including database connection'''
-        login_thread = threading.Thread(target=self._loadprogram)
+        login_thread = threading.Thread(target=self._load_program)
         login_thread.start()
 
     def __init__(self, **kwargs):
@@ -95,6 +95,7 @@ class Splash(Screen, FloatLayout):
                                 size_hint=(None,None),
                                 size=(0,0),
                                 opacity=1,
+                                allow_stretch=True,
                                 pos_hint={"center_x": .5, "center_y": .5})
         self.circle_fade.texture.mag_filter = 'nearest'
         self.add_widget(self.circle_fade)

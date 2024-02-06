@@ -11,7 +11,7 @@ from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
-from script.EyeTracking.utilities import (DOSIS_FONT,
+from script.eyetracking.utilities import (DOSIS_FONT,
                                           YAHEI_FONT,
                                           GRAY,
                                           CYAN,
@@ -94,7 +94,8 @@ class Login(Screen, FloatLayout):
     def _login_released(self, instance):
         ''' Connects to database and verifies the input credentials'''
         try:
-            db_cred = App.get_running_app().db_cred
+            app = App.get_running_app()
+            db_cred = app.db_cred
             cn = mysql.connector.connect(
                             user=db_cred['user'],
                             password=db_cred['password'],
@@ -105,9 +106,9 @@ class Login(Screen, FloatLayout):
             cr.execute(f"SELECT verify_login(\'{u}\',\'{p}\') AS verify_login")
             if cr.fetchall()[0][0] == 1:
                 self.login_result.text=f"Welcome, {u}!"
-                self.home = home.Home(name="Home Page")
-                App.get_running_app().user = u
-                App.get_running_app().screen_manager.add_widget(self.home)
+                app.user = u
+                app.home = home.Home(name="Home Page")
+                app.screen_manager.add_widget(app.home)
                 Clock.schedule_once(lambda dt: change_to_screen(screen="Home Page"), 2)
             else:
                 self.login_result.text="Invalid Credentials! Try again."
@@ -129,7 +130,7 @@ class Login(Screen, FloatLayout):
                             size_hint=(None,None),
                             pos_hint={"center_x": .06, "center_y": .91})
         self.add_widget(self.bw_logo)
-        # Decorative Circles
+        #region Decorative Circles
         self.circles_decor = FloatLayout()
         self.c1 = Image(source="doc/icons/C1.png",
                                 size_hint=(None,None),
@@ -144,7 +145,8 @@ class Login(Screen, FloatLayout):
                                 )
         self.circles_decor.add_widget(self.c2)
         self.add_widget(self.circles_decor)
-        # Login Header Text
+        #endregion
+        #region Login Header Text
         self.login_text = BoxLayout(orientation="vertical",
                                       size_hint=(None,None),
                                       size=(500,80),
@@ -168,14 +170,15 @@ class Login(Screen, FloatLayout):
                                 pos_hint={"center_x": .5, "center_y": .46},
                                 opacity=.7)
         self.add_widget(self.login_panel)
-        # Login Details
+        #endregion
+        #region Login Details
         self.login_layout = BoxLayout(orientation="vertical",
                                 size_hint=(None,None),
                                 size=(300,225),
                                 padding=(0,15),
                                 spacing=-40,
                                 pos_hint={'center_x': .5, 'center_y': .57},)
-        self.login_result = Label(text="",
+        self.login_result = Label(text="Kindly enter your credentials.",
                                   font_name="Dosis",
                                   size_hint=(1,.6),
                                   color=CYAN,
@@ -223,7 +226,8 @@ class Login(Screen, FloatLayout):
                                 background_active="doc/images/Login_shapes/TextBox_active.png",
                                 pos_hint={'center_x': .5, 'center_y': .5})
         self.login_layout.add_widget(self.pass_box)
-        # Login & Create Account Button(s)
+        #endregion
+        #region Login & Create Account Button(s)
         self.login_button = Button(text="LOGIN", color = "ffffff",
                             font_name="Dosis",
                             size_hint=(None,None),
@@ -250,6 +254,7 @@ class Login(Screen, FloatLayout):
         self.add_widget(self.login_layout)
         self.add_widget(self.login_button)
         self.add_widget(self.register_button)
+        #endregion
         self.footer = Label(text="EGYPT-JAPAN UNIVERSITY OF SCIENCE AND TECHNOLOGY x BENHA UNIVERSITY HACKATHON - 2024",
                              color = PURPLE,
                              font_name="Dosis",

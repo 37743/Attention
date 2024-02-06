@@ -12,7 +12,9 @@ GRAY = "9b9b9b"
 DOSIS_FONT = "doc/fonts/Dosis-ExtraBold.ttf"
 YAHEI_FONT = "doc/fonts/MicrosoftYaHeiUI.ttf"
 
-
+# Supported Material Data Types
+SUPPORTED_TYPES = [["pdf", "txt"],
+                   ["png", "jpeg", "jpg"]]
 # Kivy Window Size
 WINDOW_SIZE = (1024, 640)
 

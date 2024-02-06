@@ -1,24 +1,37 @@
 # Egypt-Japan University of Science and Technology
 # Attention - Team E-JUSTians
-# Login Screen
+# Home Screen
 # ---
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
 from kivy.graphics import Rectangle
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.behaviors import ToggleButtonBehavior
-from script.EyeTracking.utilities import (DOSIS_FONT,
-                                          YAHEI_FONT,
-                                          GRAY,
-                                          CYAN,
-                                          PURPLE)
 from kivy.core.text import LabelBase
+from kivy.uix.textinput import TextInput
 from kivy.animation import Animation
 from functools import partial
 from kivy.clock import Clock
+# Scripts & Variables
+from script.eyetracking.utilities import (DOSIS_FONT,
+                                          YAHEI_FONT,
+                                          SUPPORTED_TYPES,
+                                          GRAY,
+                                          CYAN,
+                                          PURPLE)
+from script.datetextinput import DateTextInput
+from script.togglebutton import ToggleButton
+# Tkinter for Filechooser interface
+import tkinter as tk
+from tkinter import filedialog
+# MariaDB connector
+import mysql.connector
+# Binary Encoder/Decoder
 
 def change_to_screen(*args, screen):
     App.get_running_app().screen_manager.current = screen
@@ -28,30 +41,29 @@ def hide_layout(*args, self, layout):
     hide = Animation(pos_hint={'center_x':5,'center_y':.5}, t='in_cubic', d=2)
     hide &= Animation(opacity=0, t='in_cubic', d=1)
     layout = "self."+str(layout)+"_layout"
+    if layout == "self.profile_layout":
+        hide_again = Animation(pos_hint={'center_x':4.82,'center_y': .72}, t='in_cubic', d=2)
+        hide_again &= Animation(opacity=1, t='in_cubic', d=1)
+        hide_again.start(self.profile_border)
     exec(f"hide.start({layout})")
 
 def show_layout(*args, self, layout):
     show = Animation(pos_hint={'center_x':.5,'center_y':.5}, t='out_cubic', d=2)
     show &= Animation(opacity=1, t='in_cubic', d=2)
     layout = "self."+str(layout)+"_layout"
+    print(layout)
+    if layout == "self.profile_layout":
+        show_again = Animation(pos_hint={'center_x':.32,'center_y': .72}, t='out_cubic', d=2)
+        show_again &= Animation(opacity=1, t='in_cubic', d=2)
+        show_again.start(self.profile_border)
     exec(f"show.start({layout})")
 
-class ToggleButton(ToggleButtonBehavior, Image):
-    def __init__(self, instance=None, **kwargs):
-        super(ToggleButton, self).__init__(**kwargs)
-        if instance == "home":
-            self.state = 'down'
-            self.source = 'doc/images/Home_page_shapes/SquareBtn_shadow.png'
-        else:
-            self.source = 'doc/images/Home_page_shapes/SquareBtn_invis.png'
 
-    def on_state(self, instance, value):
-        if value == 'down':
-            self.disabled = True
-            self.source = 'doc/images/Home_page_shapes/SquareBtn_shadow.png'
-        else:
-            self.disabled = False
-            self.source = 'doc/images/Home_page_shapes/SquareBtn_invis.png'
+def make_img(encoded_data):
+    filepath="app/doc/images/Profile_page/profile_pic.jpg"
+    with open(filepath, 'wb') as f:
+        f.write(encoded_data)
+    return filepath
 
 class Home(Screen, FloatLayout):
     def _update_bg(self, instance, value):
@@ -61,11 +73,119 @@ class Home(Screen, FloatLayout):
     def _navigate(self, instance, final):
         init = self._get_curr()
         self._set_curr(new_curr=final)
-        if init == final:
+        hide_layout(self=self, layout=init)
+        show_layout(self=self, layout=final)
+
+    def _add_file(self, instance):
+        root = tk.Tk()
+        root.withdraw()
+
+        self.file_path = filedialog.askopenfilename(title = "Select Study Material",
+                                            filetypes=[("PDF, Text files", "*.pdf *.txt")])
+        if len(self.file_path) > 0:
+            for type in SUPPORTED_TYPES[0]:
+                if self.file_path.rsplit(".")[1] == type:
+                    for widget in ToggleButtonBehavior.get_widgets(groupname="mat"):
+                        widget.state = "normal"
+                        widget.source = widget.up_state
+                    exec(f"self.mat_{type}.state = \"down\"")
+                    exec(f"self.mat_{type}.source = self.mat_{type}.down_state")
+                    exec(f"self.add_panel_icon.source = \"app/doc/images/Add_page/{type}_gray.png\"")
+                    self.add_text.pos_hint = {'center_x':.5,
+                                              'center_y':.3}
+                    self.add_text.text = self.file_path.rsplit("/")[-1]
+    
+    def _upload_file(self, instance):
+        showtext = Animation(opacity=1, d=.5)
+        hidetext = Animation(opacity=0, d=.5)
+        self.mat_result = Label(text="Kindly upload a file!",
+                                font_name="Dosis",
+                                color=CYAN,
+                                font_size=22,
+                                halign='center',
+                                opacity=0,
+                                pos_hint={"center_x": .5, "center_y": 1.3})
+        self.add_layout.add_widget(self.mat_result)
+        if (self.file_path):
+            try:
+                db_cred = App.get_running_app().db_cred
+                cn = mysql.connector.connect(
+                                user=db_cred['user'],
+                                password=db_cred['password'],
+                                host=db_cred['host'],
+                                database=db_cred['database'])
+                print("Connected!")
+                cr = cn.cursor()
+                b = open(self.file_path, "rb").read()
+                n,d = self.file_path.rsplit("/")[-1].rsplit(".")
+                u = App.get_running_app().user
+                sql = "CALL add_doc(%s,%s,%s,%s)"
+                cr.execute(sql, (b,n,d,u))
+                cn.commit()
+                cn.close()
+                for widget in ToggleButtonBehavior.get_widgets(groupname="mat"):
+                    widget.state = "normal"
+                    widget.source = widget.up_state
+                self.mat_result.text = "File uploaded successfully!"
+            except mysql.connector.Error as e:
+                self.mat_result.text = "ERROR: Re-name or change the file!"
+                print(f"{e}")
+        self.file_path = ""
+        self.add_panel_icon.source="app/doc/images/Add_page/add_file.png"
+        self.add_text.text = "ADD NEW MATERIAL"
+        self.add_text.pos_hint ={"center_x": .5, "center_y": .43}
+        Clock.schedule_once(lambda dt: showtext.start(self.mat_result), .5)
+        Clock.schedule_once(lambda dt: hidetext.start(self.mat_result), 5)
+        Clock.schedule_once(lambda dt: self.add_layout.remove_widget(self.mat_result), 6)
+
+    def _update_password(self, user, cursor):
+        if ((len(self.pass_box.text) < 6)\
+             or (self.pass_box.text != self.conf_box.text)):
+            print("Password has not changed.")
             return
-        else:
-            hide_layout(self=self, layout=init)
-            Clock.schedule_once(lambda dt: show_layout(self=self, layout=final), 1)
+        p = self.pass_box.text
+        sql = "CALL update_pwd(%s,%s)"
+        cursor.execute(sql, (user, p))
+        print("Password has changed!")
+        return
+    
+    def _update_details(self, instance):
+        try:
+            db_cred = App.get_running_app().db_cred
+            cn = mysql.connector.connect(
+                            user=db_cred['user'],
+                            password=db_cred['password'],
+                            host=db_cred['host'],
+                            database=db_cred['database'])
+            print("Connected!")
+            cr = cn.cursor()
+            u = self.user
+            b = open(self.profile_pic.source, "rb").read()\
+                if (self.profile_pic.source != "doc/images/Profile_page/pfp_default.png")\
+                else b''
+            m = str(self.mail_box.text) if (len(self.mail_box.text)>0)\
+                else str(self.mail_box.hint_text)
+            c = str(self.city_box.text) if (len(self.city_box.text)>0)\
+                else str(self.city_box.hint_text)
+            century = ''
+            if self.bd_year.text != "":
+                century = '20' if int(self.bd_year.text)<50 else '19'
+            d = century+str(self.bd_year.text)+'-'\
+                +str(self.bd_month.text)+'-'+str(self.bd_day.text)\
+                if (self.bd_year.text!="" and self.bd_month.text!=""\
+                     and self.bd_day.text!="")\
+                else ('20' if int(self.bd_year.hint_text)<50 else '19')\
+                    + str(self.bd_year.hint_text)+'-'+str(self.bd_month.hint_text)\
+                        +'-'+str(self.bd_day.hint_text)
+            sql = "CALL update_details(%s,%s,%s,%s,%s)"
+            cr.execute(sql, (u,b,m,c,d))
+            print("Data updated successfully!")
+            self._update_password(u, cr)
+            cn.commit()
+            cn.close()
+            Clock.schedule_once(self._logout_released, 1)
+        except mysql.connector.Error as e:
+            print(f"{e}")
 
     def _set_curr(self, new_curr):
         self.curr = new_curr
@@ -73,6 +193,51 @@ class Home(Screen, FloatLayout):
     def _get_curr(self):
         return self.curr
     
+    def _get_details(self, e_user):
+        result = {}
+        try:
+            db_cred = App.get_running_app().db_cred
+            cn = mysql.connector.connect(
+                            user=db_cred['user'],
+                            password=db_cred['password'],
+                            host=db_cred['host'],
+                            database=db_cred['database'])
+            print("Connected!")
+            cr = cn.cursor()
+            cr.callproc("get_details", (e_user,))
+            for res in cr.stored_results():
+                result = res.fetchall()[0]
+            cn.close()
+        except mysql.connector.Error as e:
+            print(f"{e}")
+        return result
+        
+    def _get_badge(self, xp):
+        if xp <= 1000:
+            return ("bronze",1000)
+        elif xp <= 3000:
+            return ("silver",3000)
+        else:
+            return ("gold",9999999)
+        
+    def _logout_released(self, instance):
+        app = App.get_running_app()
+        app.login.login_result.text = "Logged out!"
+        app.login.pass_box.text = ""
+        change_to_screen(screen="Login Page")
+        Clock.schedule_once(lambda dt: app.screen_manager.remove_widget(app.home), 2)
+
+    def _add_pfp(self, instance):
+        root = tk.Tk()
+        root.withdraw()
+
+        self.file_path = filedialog.askopenfilename(title = "Select Profile Picture",
+                                            filetypes=[("Image files", "*.png *.jpeg *.jpg")])
+        if len(self.file_path) > 0:
+            for type in SUPPORTED_TYPES[1]:
+                if self.file_path.rsplit(".")[1] == type:
+                    self.profile_pic.source = self.file_path
+
     def __init__(self, **kwargs):
         super(Home, self).__init__(**kwargs)
         with self.canvas.before:
@@ -86,8 +251,10 @@ class Home(Screen, FloatLayout):
                             size_hint=(None,None),
                             pos_hint={"center_x": .06, "center_y": .91})
         self.add_widget(self.bw_logo)
-        # Navigation Bar
+        #region Navigation Bar
         self.curr = "home"
+        self.file_path = ""
+        self.user = App.get_running_app().user
         self.nav_bar = BoxLayout(orientation="vertical",
                                  size_hint=(1,.5),
                                  pos_hint={"center_x": .05, "center_y": .5})
@@ -116,15 +283,15 @@ class Home(Screen, FloatLayout):
         self.add_icon = Image(source="doc/icons/add.png",
                                 size_hint=(None,None),
                                 pos_hint={"center_x": .5, "center_y": .5})
-        # Star Navigation
-        self.star_nav = FloatLayout()
-        self.star_but = ToggleButton(group="nav",
+        # book Navigation
+        self.book_nav = FloatLayout()
+        self.book_but = ToggleButton(group="nav",
                                      size_hint=(None,None),
                                      size=(52,56),
                                      pos_hint={'center_x': .5, 'center_y': .5})
-        self.star_but.bind(on_release=partial(self._navigate,
-                                              final="star"))
-        self.star_icon = Image(source="doc/icons/star.png",
+        self.book_but.bind(on_release=partial(self._navigate,
+                                              final="book"))
+        self.book_icon = Image(source="doc/icons/book.png",
                                 size_hint=(None,None),
                                 pos_hint={"center_x": .5, "center_y": .5})
         # Profile Navigation
@@ -138,7 +305,8 @@ class Home(Screen, FloatLayout):
         self.profile_icon = Image(source="doc/icons/profile.png",
                                 size_hint=(None,None),
                                 pos_hint={"center_x": .5, "center_y": .5})
-        # Home Layout
+        #endregion
+        #region Home Layout
         self.home_layout = FloatLayout(pos_hint={"center_x": .5, "center_y": .5})
         self.home_panel = Image(source="app/doc/images/Home_page_shapes/panel_reg.png",
                                 size_hint=(None,None),
@@ -150,53 +318,397 @@ class Home(Screen, FloatLayout):
                                   font_size=36,
                                   halign='center',
                                   pos_hint={"center_x": .5, "center_y": .5})
-        # Add Material Layout
+        #endregion
+        #region Add Material Layout
         self.add_layout = FloatLayout(pos_hint={"center_x": 5, "center_y": .5},
-                                      opacity=0)
-        self.add_panel = Image(source="app/doc/images/Home_page_shapes/panel_reg.png",
+                                    size_hint_y=.5,
+                                    opacity=0)
+        self.add_panel_layout = FloatLayout(pos_hint={"center_x": .5, "center_y": .75})
+        self.add_panel = Button(text="",
                                 size_hint=(None,None),
-                                size=(500,500),
-                                pos_hint={"center_x": .5, "center_y": .5})
-        self.add_title = Label(text="Add Material Panel Test",
+                                size=(383,307),
+                                pos_hint={'center_x': .5, 'center_y': .5},
+                                opacity=.2,
+                                background_normal=
+                                "doc/images/Add_page/add_file_reg.png",
+                                background_down=
+                                "doc/images/Add_page/add_file_reg.png")
+        self.add_panel.bind(on_release=self._add_file)
+        self.add_panel_layout.add_widget(self.add_panel)
+        self.add_panel_icon = Image(source="app/doc/images/Add_page/add_file.png",
+                                    size_hint=(None,None),
+                                    pos_hint={"center_x": .5, "center_y": .55})
+        self.add_panel_layout.add_widget(self.add_panel_icon)
+        self.add_text = Label(text="ADD NEW MATERIAL",
+                                  font_name="YaHei",
+                                  color=GRAY,
+                                  font_size=16,
+                                  halign='center',
+                                  pos_hint={"center_x": .5, "center_y": .43})
+        self.add_panel_layout.add_widget(self.add_text)
+        self.mat_text = Label(text="Choose the type of material",
+                                  font_name="YaHei",
+                                  color=GRAY,
+                                  font_size=14,
+                                  halign='left',
+                                  pos_hint={"center_x": .42, "center_y": .25})
+        self.mat_layout = BoxLayout(orientation="horizontal",
+                                    size_hint=(.3,1),
+                                    spacing=20,
+                                    pos_hint={"center_x": .47, "center_y": .1})
+        self.mat_pdf = ToggleButton(group="mat",
+                                    size_hint=(None,None),
+                                    size=(52,52),
+                                    up="doc/images/Add_page/pdf.png",
+                                    down="doc/images/Add_page/pdf_down.png",
+                                    pos_hint={'center_x': .5, 'center_y': .5})
+        self.mat_txt = ToggleButton(group="mat",
+                                    size_hint=(None,None),
+                                    size=(52,52),
+                                    up="doc/images/Add_page/txt.png",
+                                    down="doc/images/Add_page/txt_down.png",
+                                    pos_hint={'center_x': .5, 'center_y': .5})
+        self.mat_vid = ToggleButton(group="mat",
+                                    size_hint=(None,None),
+                                    size=(52,52),
+                                    up="doc/images/Add_page/video.png",
+                                    down="doc/images/Add_page/video_down.png",
+                                    disabled=True,
+                                    # opacity=.5,
+                                    pos_hint={'center_x': .5, 'center_y': .5})
+        self.mat_wav = ToggleButton(group="mat",
+                                    size_hint=(None,None),
+                                    size=(52,52),
+                                    up="doc/images/Add_page/audio.png",
+                                    down="doc/images/Add_page/audio_down.png",
+                                    disabled=True,
+                                    # opacity=.5,
+                                    pos_hint={'center_x': .5, 'center_y': .5})
+        self.upload_button = Button(text="UPLOAD", color = "ffffff",
+                                    font_name="Dosis",
+                                    size_hint=(None,None),
+                                    size=(140,37),
+                                    font_size=16,
+                                    pos_hint={'center_x': .5, 'center_y': -.1},
+                                    background_normal=
+                                    "doc/images/Add_page/Btn1.png",
+                                    background_down=
+                                    "doc/images/Add_page/Btn1_down.png")
+        self.upload_button.bind(on_release=self._upload_file)
+        self.add_layout.add_widget(self.add_panel_layout)
+        self.add_layout.add_widget(self.mat_text)
+        self.mat_layout.add_widget(self.mat_pdf)
+        self.mat_layout.add_widget(self.mat_txt)
+        self.mat_layout.add_widget(self.mat_vid)
+        self.mat_layout.add_widget(self.mat_wav)
+        self.add_layout.add_widget(self.mat_layout)
+        self.add_layout.add_widget(self.upload_button)
+        self.add_widget(self.add_layout)
+        #endregion
+        #region Reading Layout
+        self.book_layout = FloatLayout(pos_hint={"center_x": 5, "center_y": .5},
+                                      opacity=0)
+        self.book_panel = Image(source="app/doc/images/Home_page_shapes/book_panel.png",
+                                size_hint=(None,None),
+                                size=(536,503),
+                                opacity=.2,
+                                pos_hint={"center_x": .5, "center_y": .48})
+        self.book_title = Label(text="Book Title",
                                   font_name="Dosis",
                                   color=PURPLE,
                                   font_size=36,
                                   halign='center',
-                                  pos_hint={"center_x": .5, "center_y": .5})
-        # Star Layout
-        self.star_layout = FloatLayout(pos_hint={"center_x": 5, "center_y": .5},
-                                      opacity=0)
-        self.star_panel = Image(source="app/doc/images/Home_page_shapes/panel_reg.png",
+                                  pos_hint={"center_x": .5, "center_y": .91})
+        self.book_mat_layout = FloatLayout(pos_hint={"center_x": .85, "center_y": .5})
+        self.book_panel2 = Image(source="app/doc/images/Home_page_shapes/book_panel_2.png",
                                 size_hint=(None,None),
-                                size=(500,500),
-                                pos_hint={"center_x": .5, "center_y": .5})
-        self.star_title = Label(text="Star Panel Test",
-                                  font_name="Dosis",
-                                  color=PURPLE,
+                                size=(185,503),
+                                opacity=.2,
+                                pos_hint={"center_x": .5, "center_y": .48})
+        self.u_hh, self.u_mm, self.u_ss = "00","00","00"
+        self.book_timer = Label(text=f"{self.u_hh}:{self.u_mm}:{self.u_ss}",
+                                  font_name="YaHei",
+                                  color=GRAY,
                                   font_size=36,
                                   halign='center',
-                                  pos_hint={"center_x": .5, "center_y": .5})
-        # Profile Layout
+                                  pos_hint={"center_x": .5, "center_y": .91})
+        self.refresh_but = Button(text="",
+                                size_hint=(None,None),
+                                size=(52,56),
+                                pos_hint={'center_x': .5, 'center_y': .15},
+                                background_normal=
+                                "doc/images/Reading_page/refresh.png",
+                                background_down=
+                                "doc/images/Reading_page/refresh_down.png")
+        self.book_layout.add_widget(self.book_panel)
+        self.book_layout.add_widget(self.book_title)
+        self.book_mat_layout.add_widget(self.book_panel2)
+        self.book_mat_layout.add_widget(self.book_timer)
+        self.book_mat_layout.add_widget(self.refresh_but)
+        self.book_layout.add_widget(self.book_mat_layout)
+        self.add_widget(self.book_layout)
+        #endregion
+        #region Profile Layout
+        self.user_details = self._get_details(self.user)
         self.profile_layout = FloatLayout(pos_hint={"center_x": 5, "center_y": .5},
                                       opacity=0)
-        self.profile_panel = Image(source="app/doc/images/Home_page_shapes/panel_reg.png",
-                                size_hint=(None,None),
-                                size=(500,500),
-                                pos_hint={"center_x": .5, "center_y": .5})
-        self.profile_title = Label(text="Profile Panel Test",
+        self.profile_panel = Image(source="app/doc/images/Register_shapes/Register_reg.png",
+                                    size_hint=(None,None),
+                                    size=(600,700),
+                                    pos_hint={"center_x": .5, "center_y": .5})
+        self.pfp_layout = FloatLayout(size=(75,75),
+                                      size_hint=(None,None),
+                                      pos_hint={'center_x': .32, 'center_y': .72})
+        self.profile_border = Button(text="",
+                                    size=(75,75),
+                                    size_hint=(None,None),
+                                    pos_hint={'center_x': 4.82, 'center_y': .72},
+                                    background_normal=
+                                    "doc/images/Profile_page/pfp_border.png",
+                                    background_down=
+                                    "doc/images/Profile_page/pfp_border_down.png")
+        self.profile_border.bind(on_release=self._add_pfp)
+        self.pfp = "doc/images/Profile_page/pfp_default.png"\
+            if (self.user_details[4] == b'') else make_img(self.user_details[4])
+        self.profile_pic = Image(source=self.pfp,
+                                    pos_hint={"center_x": .5, "center_y": .5})
+        self.pfp_layout.add_widget(self.profile_pic)
+        self.pfp_text_layout = FloatLayout(size=(275,75),
+                                      size_hint=(None,None),
+                                      pos_hint={'center_x': .65, 'center_y': .75})
+        self.pfp_text = BoxLayout(orientation="vertical",
+                                spacing=-30,
+                                pos_hint={'center_x': 1, 'center_y': .5})
+        self.profile_user = Label(text=self.user,
                                   font_name="Dosis",
-                                  color=PURPLE,
-                                  font_size=36,
-                                  halign='center',
-                                  pos_hint={"center_x": .5, "center_y": .5})
-        for widget in ["home","add","star","profile"]:
+                                  color=CYAN,
+                                  font_size=22,
+                                  halign='left',
+                                  pos_hint={'right': 0})
+        self.profile_user.bind(size=self.profile_user.setter('text_size'))
+        self.badge_result, self.milestone = self._get_badge(self.user_details[3])
+        self.profile_xp = Label(text="Total XP: {xp}/{m}".format(xp=self.user_details[3],
+                                                                 m=self.milestone),
+                                font_name="YaHei",
+                                color=GRAY,
+                                font_size=14,
+                                halign='left',
+                                pos_hint={'right': 0})
+        self.profile_xp.bind(size=self.profile_xp.setter('text_size'))
+        self.profile_badge = Image(source=f"doc/images/Profile_page/{self.badge_result}.png",
+                                   pos_hint={"center_x": .68, "center_y": .7})
+        self.pfp_text.add_widget(self.profile_user)
+        self.pfp_text.add_widget(self.profile_xp)
+        self.pfp_text_layout.add_widget(self.pfp_text)
+
+        # Update Profile Details
+        self.details_layout = GridLayout(rows=3,
+                                orientation='tb-lr',
+                                size_hint=(None,None),
+                                size=(550,345),
+                                spacing=-30,
+                                row_default_height=115,
+                                row_force_default=True,
+                                pos_hint={'center_x': .5, 'center_y': .42},)
+        # Password
+        self.pass_layout = BoxLayout(orientation="vertical",
+                                    size=(200,70),
+                                    spacing=-40)
+        self.pass_label = Label(text="Password",
+                                font_name="YaHei",
+                                color=GRAY,
+                                font_size=13,
+                                halign='left',
+                                pos_hint={'center_x': .25, 'center_y': .5})
+        self.pass_layout.add_widget(self.pass_label)
+        self.pass_box = TextInput(multiline=False,
+                                size_hint = (.75,.4),
+                                font_name="YaHei",
+                                password=True,
+                                cursor_color=PURPLE,
+                                font_size=13,
+                                foreground_color=PURPLE,
+                                write_tab=False,
+                                padding=(10,10),
+                                hint_text = "",
+                                background_normal="doc/images/Register_shapes/TextBox.png",
+                                background_active="doc/images/Register_shapes/TextBox_active.png",
+                                pos_hint={'center_x': .5, 'center_y': .5})
+        self.pass_layout.add_widget(self.pass_box)
+        # Confirmation Password
+        self.conf_layout = BoxLayout(orientation="vertical",
+                                    size=(200,70),
+                                    spacing=-40)
+        self.conf_label = Label(text="Confirmed Password",
+                                font_name="YaHei",
+                                color=GRAY,
+                                font_size=13,
+                                halign='left',
+                                pos_hint={'center_x': .37, 'center_y': .5})
+        self.conf_layout.add_widget(self.conf_label)
+        self.conf_box = TextInput(multiline=False,
+                                size_hint = (.75,.4),
+                                font_name="YaHei",
+                                password=True,
+                                cursor_color=PURPLE,
+                                font_size=13,
+                                foreground_color=PURPLE,
+                                write_tab=False,
+                                padding=(10,10),
+                                hint_text = "",
+                                background_normal="doc/images/Register_shapes/TextBox.png",
+                                background_active="doc/images/Register_shapes/TextBox_active.png",
+                                pos_hint={'center_x': .5, 'center_y': .5})
+        self.conf_layout.add_widget(self.conf_box)
+        # Email
+        self.mail_layout = BoxLayout(orientation="vertical",
+                                    size=(200,70),
+                                    spacing=-40)
+        self.mail_label = Label(text="Email",
+                                font_name="YaHei",
+                                color=GRAY,
+                                font_size=13,
+                                halign='left',
+                                pos_hint={'center_x': .2, 'center_y': .5})
+        self.mail_layout.add_widget(self.mail_label)
+        self.mail_box = TextInput(multiline=False,
+                                size_hint = (.75,.4),
+                                font_name="YaHei",
+                                cursor_color=PURPLE,
+                                font_size=13,
+                                foreground_color=PURPLE,
+                                write_tab=False,
+                                padding=(10,10),
+                                hint_text = self.user_details[0],
+                                background_normal="doc/images/Register_shapes/TextBox.png",
+                                background_active="doc/images/Register_shapes/TextBox_active.png",
+                                pos_hint={'center_x': .5, 'center_y': .5})
+        self.mail_layout.add_widget(self.mail_box)
+        # City
+        self.city_layout = BoxLayout(orientation="vertical",
+                                    size=(200,70),
+                                    spacing=-40)
+        self.city_label = Label(text="City",
+                                font_name="YaHei",
+                                color=GRAY,
+                                font_size=13,
+                                halign='left',
+                                pos_hint={'center_x': .19, 'center_y': .5})
+        self.city_layout.add_widget(self.city_label)
+        self.city_box = TextInput(multiline=False,
+                                size_hint = (.75,.4),
+                                font_name="YaHei",
+                                cursor_color=PURPLE,
+                                font_size=13,
+                                foreground_color=PURPLE,
+                                write_tab=False,
+                                padding=(10,10),
+                                hint_text = self.user_details[1],
+                                background_normal="doc/images/Register_shapes/TextBox.png",
+                                background_active="doc/images/Register_shapes/TextBox_active.png",
+                                pos_hint={'center_x': .5, 'center_y': .5})
+        self.city_layout.add_widget(self.city_box)
+        # Birth date
+        self.bd_layout = BoxLayout(orientation="vertical",
+                                    size=(200,70),
+                                    spacing=-40)
+        self.bd_label = Label(text="Birth Date",
+                                font_name="YaHei",
+                                color=GRAY,
+                                font_size=13,
+                                halign='left',
+                                pos_hint={'center_x': .24, 'center_y': .5})
+        self.bd_layout.add_widget(self.bd_label)
+        self.bd_layout2 = BoxLayout(orientation="horizontal",
+                                    size_hint = (.75,.4),
+                                    pos_hint={'center_x': .5, 'center_y': .5},
+                                    spacing=10)
+        self.bd_day = DateTextInput(multiline=False,
+                                font_name="YaHei",
+                                input_filter='int',
+                                cursor_color=PURPLE,
+                                font_size=13,
+                                foreground_color=PURPLE,
+                                write_tab=False,
+                                padding=(10,10),
+                                hint_text = self.user_details[2].strftime("%d"),
+                                background_normal="doc/images/Register_shapes/SquareBtn.png",
+                                background_active="doc/images/Register_shapes/SquareBtn_active.png")
+        self.bd_month = DateTextInput(multiline=False,
+                                font_name="YaHei",
+                                input_filter='int',
+                                cursor_color=PURPLE,
+                                font_size=13,
+                                foreground_color=PURPLE,
+                                write_tab=False,
+                                padding=(10,10),
+                                hint_text = self.user_details[2].strftime("%m"),
+                                background_normal="doc/images/Register_shapes/SquareBtn.png",
+                                background_active="doc/images/Register_shapes/SquareBtn_active.png")
+        self.bd_year = DateTextInput(multiline=False,
+                                font_name="YaHei",
+                                input_filter='int',
+                                cursor_color=PURPLE,
+                                font_size=13,
+                                foreground_color=PURPLE,
+                                write_tab=False,
+                                padding=(10,10),
+                                hint_text = self.user_details[2].strftime("%y"),
+                                background_normal="doc/images/Register_shapes/SquareBtn.png",
+                                background_active="doc/images/Register_shapes/SquareBtn_active.png")
+        # Update Button
+        self.update_but_layout = FloatLayout(size=(200,70))
+        self.update_but = Button(text="UPDATE", color = "ffffff",
+                                font_name="Dosis",
+                                size_hint=(None,None),
+                                size=(140,37),
+                                pos_hint={'center_x': .5, 'center_y': .3},
+                                font_size=16,
+                                background_normal=
+                                "doc/images/Register_shapes/Btn1.png",
+                                background_down=
+                                "doc/images/Register_shapes/Btn1_down.png")
+        self.update_but.bind(on_release=self._update_details)
+        self.update_but_layout.add_widget(self.update_but)
+        self.bd_layout2.add_widget(self.bd_day)
+        self.bd_layout2.add_widget(self.bd_month)
+        self.bd_layout2.add_widget(self.bd_year)
+        self.bd_layout.add_widget(self.bd_layout2)
+        self.details_layout.add_widget(self.pass_layout)
+        self.details_layout.add_widget(self.conf_layout)
+        self.details_layout.add_widget(self.bd_layout)
+        self.details_layout.add_widget(self.mail_layout)
+        self.details_layout.add_widget(self.city_layout)
+        self.details_layout.add_widget(self.update_but_layout)
+        self.profile_layout.add_widget(self.profile_panel)
+        self.profile_layout.add_widget(self.pfp_layout)
+        self.profile_layout.add_widget(self.pfp_text_layout)
+        self.profile_layout.add_widget(self.profile_badge)
+        self.profile_layout.add_widget(self.details_layout)
+        self.add_widget(self.profile_layout)
+        self.add_widget(self.profile_border)
+        #endregion
+        for widget in ["home","add","book","profile"]:
             exec(f"self.{widget}_nav.add_widget(self.{widget}_but)")
             exec(f"self.{widget}_nav.add_widget(self.{widget}_icon)")
             exec(f"self.nav_bar.add_widget(self.{widget}_nav)")
+        for widget in ["home"]:
             exec(f"self.{widget}_layout.add_widget(self.{widget}_panel)")
             exec(f"self.{widget}_layout.add_widget(self.{widget}_title)")
             exec(f"self.add_widget(self.{widget}_layout)")
         self.add_widget(self.nav_bar)
+        #region Logout button
+        self.logout_but = Button(text="",
+                                size_hint=(None,None),
+                                size=(52,56),
+                                pos_hint={'center_x': .05, 'center_y': .1},
+                                background_normal=
+                                "doc/images/Home_page_shapes/logout_invis.png",
+                                background_down=
+                                "doc/images/Home_page_shapes/logout_shadow.png")
+        self.logout_but.bind(on_release=self._logout_released)
+        self.add_widget(self.logout_but)
+        #endregion
         self.footer = Label(text="EGYPT-JAPAN UNIVERSITY OF SCIENCE AND TECHNOLOGY x BENHA UNIVERSITY HACKATHON - 2024",
                              color = PURPLE,
                              font_name="Dosis",

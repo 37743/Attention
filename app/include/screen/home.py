@@ -197,15 +197,33 @@ class Home(Screen, FloatLayout):
         Clock.schedule_once(lambda dt: hidetext.start(self.mat_result), 5)
         Clock.schedule_once(lambda dt: self.add_layout.remove_widget(self.mat_result), 6)
 
+    def _warning(self, instance, popup_obj, doc):
+        popup_obj.dismiss()
+        # TODO: Add more to this
+
     def _time_inc(self, instance):
         date = datetime.strptime(self.book_timer.text, "%H:%M:%S")
         date += timedelta(seconds=1)
         self.book_timer.text = datetime.strftime(date, "%H:%M:%S")
-        print(f"Blinks:{penalty.blinks} - "\
+        print(f"Recent:{penalty.recent} - "\
+                +f"Blinks:{penalty.blinks} - "\
                 +f"Left:{penalty.left} - "\
                 +f"Center:{penalty.center} - "\
                 +f"Right:{penalty.right}")
-        
+        self.warning = self.warning + 1 if penalty.recent != "center" else 0
+        if (self.warning > 5):
+            Clock.unschedule(self._time_inc)
+            penalty.pause = True
+            # Reset
+            self.warning = 0
+            self.pause_popup = NewPopup(self._warning, None, "Paused",
+                                        f"WARNING!\n"\
+                                        +f"[color={PURPLE}]"+
+                                        f"You have not read anything in a while.",
+                                        "RESUME")
+            self.pause_popup.bind(on_dismiss=self._read_unpause)
+            self.pause_popup.open()
+
     def _update_txt(self, doc):
         self.doc_page.text = f"{self.documents[doc][3]}/{len(self.whole_doc)}"
         self.doc_text.text = self.whole_doc[int(self.doc_page.text.rsplit("/")[0])-1]
@@ -215,6 +233,8 @@ class Home(Screen, FloatLayout):
     def _flip_page(self, instance, direction):
         # 1-indexed to 0-indexed for proper text mapping
         curr_page = int(self.doc_page.text.rsplit("/")[0])
+        if self.doc_page.text.rsplit("/")[1] == "0":
+            return
         if (curr_page == len(self.whole_doc)\
             and direction == "next")\
             or\
@@ -232,6 +252,7 @@ class Home(Screen, FloatLayout):
         self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
                                for i in range(0, len(self.whole_doc), TXT_LIMIT)]
         self._update_txt(doc)
+        penalty.reset = True
     
     def _read_start(self, instance, doc):
         if (self.book_title.text == self.documents[doc][0]):
@@ -247,9 +268,12 @@ class Home(Screen, FloatLayout):
 
     def _read_doc(self, instance, popup_obj, doc):
         popup_obj.dismiss()
-        self.book_mat_layout.remove_widget(self.refresh_but)
-        self.book_mat_layout.add_widget(self.pause_but)
-        self._start_tracker()
+        # Assert that it is false.
+        penalty.end = False
+        if (self.refresh_but in self.book_mat_layout.children):
+            self.book_mat_layout.remove_widget(self.refresh_but)
+            self.book_mat_layout.add_widget(self.pause_but)
+        self.gt = self._start_tracker()
         self.book_timer.text = "00:00:00"
         Clock.unschedule(self._time_inc)
         self.doc_text.text = "Loading.."
@@ -262,7 +286,7 @@ class Home(Screen, FloatLayout):
             self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
                                for i in range(0, len(self.whole_doc), TXT_LIMIT)]
             self._update_txt(doc)
-        return
+            penalty.reset = True
 
     def _read_pause(self, instance):
         Clock.unschedule(self._time_inc)
@@ -270,10 +294,7 @@ class Home(Screen, FloatLayout):
         self.pause_popup = NewPopup(self._save_prog, None, "Paused",
                                     f"Do you want to end session?\n"\
                                     +f"[color={PURPLE}]"+
-                                    f"XP:{penalty.center} - "\
-                                    +f"Left:{penalty.left} - "\
-                                    +f"Center:{penalty.center} - "\
-                                    +f"Right:{penalty.right}[/color]",
+                                    f"XP Gained:{penalty.center}",
                                     "YES")
         self.pause_popup.bind(on_dismiss=self._read_unpause)
         self.pause_popup.open()
@@ -286,6 +307,30 @@ class Home(Screen, FloatLayout):
         popup_obj.dismiss()
         Clock.unschedule(self._time_inc)
         penalty.end = True
+        doc = self.book_title.text
+        self.book_title.text = "Document Title"
+        self.book_timer.text = "00:00:00"
+        user = self.user
+        xp = penalty.center
+        pg = int(self.doc_page.text.rsplit("/")[0])
+        self.doc_page.text = "0/0"
+        self.doc_text.text = ""
+        try:
+            db_cred = App.get_running_app().db_cred
+            cn = mysql.connector.connect(
+                            user=db_cred['user'],
+                            password=db_cred['password'],
+                            host=db_cred['host'],
+                            database=db_cred['database'])
+            print("Connected!")
+            cr = cn.cursor()
+            u = self.user
+            cr.callproc("save_prog", (user,doc,xp,pg))
+            cn.commit()
+            print("Success!")
+            cn.close()
+        except mysql.connector.Error as e:
+            print(f"{e}")
 
     def _refresh_doc(self, instance):
         self.doc_layout.clear_widgets()
@@ -452,6 +497,7 @@ class Home(Screen, FloatLayout):
         self.curr = "home"
         self.file_path = ""
         self.documents = []
+        self.warning = 0
         #region Navigation Bar
         self.nav_bar = BoxLayout(orientation="vertical",
                                  size_hint=(1,.5),

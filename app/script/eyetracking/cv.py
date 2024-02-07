@@ -33,24 +33,28 @@ DISABLED = False
 PENALTY = {'blinks':0,
            'left':0,
            'center':0,
-           'right':0}
+           'right':0,
+           'recent':""}
 
 class Penalty:
     # Modules-wide Variables
     pause = False
     end = False
+    reset = False
     def __init__(self):
         # TEMP
         self.blinks = 0
         self.left = 0
         self.center = 0
         self.right = 0
+        self.recent = ""
 
     def update(self, penalty):
         self.blinks = penalty['blinks']
         self.left = penalty['left']
         self.center = penalty['center']
         self.right = penalty['right']
+        self.recent = penalty['recent']
 
 penalty = Penalty()
 
@@ -162,6 +166,14 @@ class GazeTracker:
                 break
             if (penalty.pause):
                 continue
+            if (penalty.reset):
+                global PENALTY
+                PENALTY = {'blinks':0,
+                            'left':0,
+                            'center':0,
+                            'right':0,
+                            'recent':""}
+                penalty.reset = not penalty.reset
             _, self.frame = self.cap.read()
             # if not ret: 
             #     break
@@ -187,7 +199,7 @@ class GazeTracker:
             # Flip and add text for direction clarity.
             self.frame = flip(self.frame, 1)
             sleep(1)
-            self._loc_status(avg_gaze_ratio)
+            PENALTY['recent'] = self._loc_status(avg_gaze_ratio)
             self._blink_status(ratio)
             penalty.update(PENALTY)
             # if waitKey(1) == 27:

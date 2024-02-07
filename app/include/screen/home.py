@@ -70,8 +70,8 @@ def show_layout(*args, self, layout):
         show_again.start(self.profile_border)
     exec(f"show.start({layout})")
 
-def make_img(encoded_data):
-    filepath="app/doc/images/Profile_page/profile_pic.jpg"
+def make_img(encoded_data, path):
+    filepath=path
     with open(filepath, 'wb') as f:
         f.write(encoded_data)
     return filepath
@@ -135,6 +135,49 @@ class Home(Screen, FloatLayout):
         hide_layout(self=self, layout=init)
         show_layout(self=self, layout=final)
 
+    def _leaderboard(self):
+        result = []
+        try:
+            db_cred = App.get_running_app().db_cred
+            cn = mysql.connector.connect(
+                            user=db_cred['user'],
+                            password=db_cred['password'],
+                            host=db_cred['host'],
+                            database=db_cred['database'])
+            print("Connected!")
+            cr = cn.cursor()
+            u = self.user
+            cr.callproc("get_ldrb")
+            for res in cr.stored_results():
+                fetch = res.fetchall()
+                for row in fetch:
+                    result.append(row)
+            cn.close()
+        except mysql.connector.Error as e:
+            print(f"{e}")
+        for idx, row in enumerate(result):
+            row_layout = BoxLayout(orientation="horizontal")
+            row_layout.add_widget(Label(text=f"#{idx+1}",
+                                        font_name="YaHei",
+                                        color=GRAY,
+                                        font_size=14,
+                                        halign='left',
+                                        pos_hint={'right': 0}))
+            row_layout.add_widget(Label(text=result[idx][0],
+                                        font_name="YaHei",
+                                        color=GRAY,
+                                        font_size=14,
+                                        halign='left',
+                                        pos_hint={'right': 0}))
+            row_layout.add_widget(Label(text=str(result[idx][1]),
+                                        font_name="YaHei",
+                                        color=GRAY,
+                                        font_size=14,
+                                        halign='left',
+                                        pos_hint={'right': 0}))
+            self.home_ldrb_grid.add_widget(row_layout)
+        return result
+    
     def _add_file(self, instance):
         root = tk.Tk()
         root.withdraw()
@@ -552,16 +595,59 @@ class Home(Screen, FloatLayout):
         #endregion
         #region Home Layout
         self.home_layout = FloatLayout(pos_hint={"center_x": .5, "center_y": .5})
-        self.home_panel = Image(source="app/doc/images/Home_page_shapes/panel_reg.png",
+        self.home_panel = Image(source="app/doc/images/Home_page_shapes/leaderboard_table_BG.png",
                                 size_hint=(None,None),
-                                size=(500,500),
-                                pos_hint={"center_x": .5, "center_y": .5})
-        self.home_title = Label(text="Home Panel Test",
+                                size=(600,467),
+                                pos_hint={"center_x": .5, "center_y": .47})
+        self.home_title = Label(text="Leaderboard",
                                   font_name="Dosis",
                                   color=PURPLE,
                                   font_size=36,
                                   halign='center',
-                                  pos_hint={"center_x": .5, "center_y": .5})
+                                  pos_hint={"center_x": .5, "center_y": .88})
+        self.rank_layout = BoxLayout(orientation="horizontal",
+                                     size_hint_x=None,
+                                     size=(550,35),
+                                     pos_hint={"center_x": .5, "center_y": .59})
+        self.rank_layout.add_widget(Label(text="Rank",
+                                    font_name="YaHei",
+                                    color=GRAY,
+                                    font_size=18,
+                                    halign='center'))
+        self.rank_layout.add_widget(Label(text="Username",
+                                    font_name="YaHei",
+                                    color=GRAY,
+                                    font_size=18,
+                                    halign='center'))
+        self.rank_layout.add_widget(Label(text="Total XP",
+                                    font_name="YaHei",
+                                    color=GRAY,
+                                    font_size=18,
+                                    halign='center'))
+        self.home_scroll = ScrollView(size=(550,280),
+                                     size_hint=(None, None),
+                                     pos_hint={"center_x": .505, "center_y": .35},
+                                     bar_color = PURPLE,
+                                     bar_inactive_color = GRAY,
+                                     bar_width = 8,
+                                     scroll_type = ['bars','content'])
+        self.home_ldrb_grid = GridLayout(cols=1,
+                                         spacing=5,
+                                         col_default_width=540,
+                                         col_force_default=True,
+                                         row_default_height=35,
+                                         row_force_default=True,
+                                         size_hint_y=None)
+        self.home_ldrb_grid.bind(minimum_height=\
+                                self.home_ldrb_grid.setter('height'))
+        self._leaderboard()
+        for widget in ["home"]:
+            exec(f"self.{widget}_layout.add_widget(self.{widget}_panel)")
+            exec(f"self.{widget}_layout.add_widget(self.{widget}_title)")
+        self.home_scroll.add_widget(self.home_ldrb_grid)
+        self.home_layout.add_widget(self.rank_layout)
+        self.home_layout.add_widget(self.home_scroll)
+        self.add_widget(self.home_layout)
         #endregion
         #region Add Material Layout
         self.add_layout = FloatLayout(pos_hint={"center_x": 5, "center_y": .5},
@@ -777,7 +863,8 @@ class Home(Screen, FloatLayout):
                                     "doc/images/Profile_page/pfp_border_down.png")
         self.profile_border.bind(on_release=self._add_pfp)
         self.pfp = "doc/images/Profile_page/pfp_default.png"\
-            if (self.user_details[4] == b'') else make_img(self.user_details[4])
+            if (self.user_details[4] == b'') else make_img(self.user_details[4],
+                                                           "app/doc/images/Profile_page/profile_pic.jpg")
         self.profile_pic = Image(source=self.pfp,
                                     pos_hint={"center_x": .5, "center_y": .5})
         self.pfp_layout.add_widget(self.profile_pic)
@@ -1000,10 +1087,6 @@ class Home(Screen, FloatLayout):
             exec(f"self.{widget}_nav.add_widget(self.{widget}_but)")
             exec(f"self.{widget}_nav.add_widget(self.{widget}_icon)")
             exec(f"self.nav_bar.add_widget(self.{widget}_nav)")
-        for widget in ["home"]:
-            exec(f"self.{widget}_layout.add_widget(self.{widget}_panel)")
-            exec(f"self.{widget}_layout.add_widget(self.{widget}_title)")
-            exec(f"self.add_widget(self.{widget}_layout)")
         self.add_widget(self.nav_bar)
         #region Logout button
         self.logout_but = Button(text="",

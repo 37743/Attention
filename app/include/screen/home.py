@@ -8,13 +8,14 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.graphics import Rectangle
 from kivy.uix.image import Image
 from kivy.uix.label import Label
-from kivy.uix.behaviors import ToggleButtonBehavior
-from kivy.core.text import LabelBase
+from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.behaviors import ToggleButtonBehavior
+from kivy.graphics import Rectangle
+from kivy.core.text import LabelBase
 from kivy.animation import Animation
 from functools import partial
 from kivy.clock import Clock
@@ -33,10 +34,16 @@ import tkinter as tk
 from tkinter import filedialog
 # MariaDB connector
 import mysql.connector
-# PDF Text Extraction
+# Multiprocessing
 import threading
+# PDF Text Extraction
 from io import BytesIO
 from pdfminer.high_level import extract_text
+# Time Manipulation
+from datetime import (datetime,
+                      timedelta)
+# Eyetracker
+from script.eyetracking.cv import (GazeTracker, penalty)
 
 def change_to_screen(*args, screen):
     App.get_running_app().screen_manager.current = screen
@@ -76,6 +83,46 @@ def thread(function):
         t.start()
         return t
     return wrap
+
+class NewPopup(Popup):
+    def __init__(self, func, doc_idx, title_text,
+                 label_text, button_text, **kwargs):
+        super(NewPopup, self).__init__(**kwargs)
+        self.popup_layout = BoxLayout(orientation="vertical",
+                                      pos_hint={'center_x': .5, 'center_y': .6},
+                                      spacing=10)
+        self.popup_layout.add_widget(Label(text=label_text,
+                                           halign="center",
+                                           markup=True,
+                                           line_height=1.2,
+                                           font_name="Dosis",
+                                           color=CYAN,
+                                           font_size=18,
+                                           ))
+        self.popup_but = Button(text=button_text, color = "ffffff",
+                                    font_name="Dosis",
+                                    size_hint=(None,None),
+                                    size=(140,37),
+                                    font_size=16,
+                                    pos_hint={'center_x': .5, 'center_y': .5},
+                                    background_normal=
+                                    "doc/images/Add_page/Btn1.png",
+                                    background_down=
+                                    "doc/images/Add_page/Btn1_down.png")
+        self.popup_but.bind(on_release=partial(func,
+                                               popup_obj=self,
+                                               doc=doc_idx))
+        self.popup_layout.add_widget(self.popup_but)
+        self.title = title_text
+        self.title_font = "Dosis"
+        self.title_color = PURPLE
+        self.title_size=32
+        self.title_align="center"
+        self.separator_height = 0
+        self.background = "app/doc/images/Reading_page/popup_reg.png"
+        self.size = (350,200)
+        self.size_hint=(None,None)
+        self.add_widget(self.popup_layout)
 
 class Home(Screen, FloatLayout):
     def _update_bg(self, instance, value):
@@ -150,9 +197,20 @@ class Home(Screen, FloatLayout):
         Clock.schedule_once(lambda dt: hidetext.start(self.mat_result), 5)
         Clock.schedule_once(lambda dt: self.add_layout.remove_widget(self.mat_result), 6)
 
+    def _time_inc(self, instance):
+        date = datetime.strptime(self.book_timer.text, "%H:%M:%S")
+        date += timedelta(seconds=1)
+        self.book_timer.text = datetime.strftime(date, "%H:%M:%S")
+        print(f"Blinks:{penalty.blinks} - "\
+                +f"Left:{penalty.left} - "\
+                +f"Center:{penalty.center} - "\
+                +f"Right:{penalty.right}")
+        
     def _update_txt(self, doc):
         self.doc_page.text = f"{self.documents[doc][3]}/{len(self.whole_doc)}"
         self.doc_text.text = self.whole_doc[int(self.doc_page.text.rsplit("/")[0])-1]
+        # Start timer once loading has finished
+        self.timer = Clock.schedule_interval(self._time_inc, 1)
 
     def _flip_page(self, instance, direction):
         # 1-indexed to 0-indexed for proper text mapping
@@ -174,13 +232,28 @@ class Home(Screen, FloatLayout):
         self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
                                for i in range(0, len(self.whole_doc), TXT_LIMIT)]
         self._update_txt(doc)
-
-    def _read_doc(self, instance, doc):
+    
+    def _read_start(self, instance, doc):
         if (self.book_title.text == self.documents[doc][0]):
             return
+        Clock.unschedule(self._time_inc)
+        self.start_popup = NewPopup(self._read_doc, doc, self.documents[doc][0],
+                                    f"Ready?\n"\
+                                    +f"[color={PURPLE}]"+
+                                    "WARNING: The timer will start ticking![/color]",
+                                    "YES")
+        self.start_popup.bind(on_dismiss=self._read_unpause)
+        self.start_popup.open()
+
+    def _read_doc(self, instance, popup_obj, doc):
+        popup_obj.dismiss()
+        self.book_mat_layout.remove_widget(self.refresh_but)
+        self.book_mat_layout.add_widget(self.pause_but)
+        self._start_tracker()
+        self.book_timer.text = "00:00:00"
+        Clock.unschedule(self._time_inc)
         self.doc_text.text = "Loading.."
         self.book_title.text = self.documents[doc][0]
-        print(self.documents[doc][2])
         if (self.documents[doc][2] == "pdf"):
             self._extract_pdf(input=self.documents[doc][1], doc=doc)
         # TXT files
@@ -190,7 +263,30 @@ class Home(Screen, FloatLayout):
                                for i in range(0, len(self.whole_doc), TXT_LIMIT)]
             self._update_txt(doc)
         return
-    
+
+    def _read_pause(self, instance):
+        Clock.unschedule(self._time_inc)
+        penalty.pause = True
+        self.pause_popup = NewPopup(self._save_prog, None, "Paused",
+                                    f"Do you want to end session?\n"\
+                                    +f"[color={PURPLE}]"+
+                                    f"XP:{penalty.center} - "\
+                                    +f"Left:{penalty.left} - "\
+                                    +f"Center:{penalty.center} - "\
+                                    +f"Right:{penalty.right}[/color]",
+                                    "YES")
+        self.pause_popup.bind(on_dismiss=self._read_unpause)
+        self.pause_popup.open()
+
+    def _read_unpause(self, instance):
+        penalty.pause = False
+        Clock.schedule_interval(self._time_inc, 1)
+
+    def _save_prog(self, instance, popup_obj, doc):
+        popup_obj.dismiss()
+        Clock.unschedule(self._time_inc)
+        penalty.end = True
+
     def _refresh_doc(self, instance):
         self.doc_layout.clear_widgets()
         result=[]
@@ -229,7 +325,7 @@ class Home(Screen, FloatLayout):
         # Kivy inserts new widgets at index 0,
         # here we reverse the list to get the correct order.
         for idx, widget in enumerate(reversed(self.doc_layout.children)):
-            widget.bind(on_release=partial(self._read_doc, doc=idx))
+            widget.bind(on_release=partial(self._read_start, doc=idx))
         return
 
     def _update_password(self, user, cursor):
@@ -327,6 +423,10 @@ class Home(Screen, FloatLayout):
                 if self.file_path.rsplit(".")[1] == type:
                     self.profile_pic.source = self.file_path
 
+    @thread
+    def _start_tracker(self):
+        GazeTracker()
+    
     def _logout_released(self, instance):
         app = App.get_running_app()
         app.login.login_result.text = "Logged out!"
@@ -511,7 +611,7 @@ class Home(Screen, FloatLayout):
                                 size=(536,503),
                                 opacity=.2,
                                 pos_hint={"center_x": .5, "center_y": .48})
-        self.book_title = Label(text="Book Title",
+        self.book_title = Label(text="Document Title",
                                   font_name="Dosis",
                                   color=PURPLE,
                                   font_size=36,
@@ -523,8 +623,7 @@ class Home(Screen, FloatLayout):
                                 size=(185,503),
                                 opacity=.2,
                                 pos_hint={"center_x": .5, "center_y": .48})
-        self.u_hh, self.u_mm, self.u_ss = "00","00","00"
-        self.book_timer = Label(text=f"{self.u_hh}:{self.u_mm}:{self.u_ss}",
+        self.book_timer = Label(text="00:00:00",
                                   font_name="YaHei",
                                   color=GRAY,
                                   font_size=36,
@@ -569,6 +668,17 @@ class Home(Screen, FloatLayout):
                                 background_down=
                                 "doc/images/Reading_page/refresh_down.png")
         self.refresh_but.bind(on_release=self._refresh_doc)
+        self.pause_but = Button(text="PAUSE/END", color = "ffffff",
+                                    font_name="Dosis",
+                                    size_hint=(None,None),
+                                    size=(140,37),
+                                    font_size=16,
+                                    pos_hint={'center_x': .5, 'center_y': .15},
+                                    background_normal=
+                                    "doc/images/Add_page/Btn1.png",
+                                    background_down=
+                                    "doc/images/Add_page/Btn1_down.png")
+        self.pause_but.bind(on_release=self._read_pause)
         self.prev_pg_but = Button(text="",
                                 size_hint=(None,None),
                                 size=(52,56),

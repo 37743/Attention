@@ -23,28 +23,14 @@ from kivy.uix.screenmanager import (ScreenManager,
 # Screens
 from include.screen import (splash,
                             login,
-                            register
-                            )
+                            register)
 # JSON Reading
 import json
-# Multiprocessing
-import threading
-# Eyetracker
-# from script.EyeTracking.cv import GazeTracker
-
-def thread(function):
-    ''' Creates a new thread with a process using the input function'''
-    def wrap(*args, **kwargs):
-        t = threading.Thread(target=function, args=args, kwargs=kwargs, daemon=True)
-        t.start()
-        return t
-    return wrap
 
 class Run(App):
     ''' Driver code for the application, contains a screen manager
     that controls which interface is shown to the user at a time.'''
     def build(self):
-        # self.do_stuff()
         self.screen_manager = ScreenManager(transition = FadeTransition())
         self.version_data = ""
         with open("app/include/config/settings.json") as json_file:
@@ -69,11 +55,6 @@ class Run(App):
         for screen in screens:
             self.screen_manager.add_widget(screen)
         return self.screen_manager
-    
-    # @thread
-    # def do_stuff(self):
-    #     ''' TODO: Use this part elsewhere '''
-    #     et = GazeTracker()
     
     def get_title(self):
         ''' Build the title for the current version of the application.'''

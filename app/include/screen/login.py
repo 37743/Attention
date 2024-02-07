@@ -115,6 +115,8 @@ class Login(Screen, FloatLayout):
                 self._login_error()
             cn.close()
         except mysql.connector.Error as e:
+            self.login_result.text="Server is currently offline."
+            self._login_error()
             print(f"{e}")
 
     def __init__(self, **kwargs):

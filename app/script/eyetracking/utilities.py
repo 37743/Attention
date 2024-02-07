@@ -15,6 +15,10 @@ YAHEI_FONT = "doc/fonts/MicrosoftYaHeiUI.ttf"
 # Supported Material Data Types
 SUPPORTED_TYPES = [["pdf", "txt"],
                    ["png", "jpeg", "jpg"]]
+
+# Text Limit
+TXT_LIMIT = 494
+
 # Kivy Window Size
 WINDOW_SIZE = (1024, 640)
 

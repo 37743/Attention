@@ -22,6 +22,7 @@ from kivy.clock import Clock
 from script.eyetracking.utilities import (DOSIS_FONT,
                                           YAHEI_FONT,
                                           SUPPORTED_TYPES,
+                                          TXT_LIMIT,
                                           GRAY,
                                           CYAN,
                                           PURPLE)
@@ -105,7 +106,7 @@ class Home(Screen, FloatLayout):
                     self.add_text.pos_hint = {'center_x':.5,
                                               'center_y':.3}
                     self.add_text.text = self.file_path.rsplit("/")[-1]
-    
+
     def _upload_file(self, instance):
         showtext = Animation(opacity=1, d=.5)
         hidetext = Animation(opacity=0, d=.5)
@@ -149,21 +150,45 @@ class Home(Screen, FloatLayout):
         Clock.schedule_once(lambda dt: hidetext.start(self.mat_result), 5)
         Clock.schedule_once(lambda dt: self.add_layout.remove_widget(self.mat_result), 6)
 
-    def _update_txt(self, new_text):
-        print(new_text)
-        self.doc_text.text = new_text[:494]
+    def _update_txt(self, doc):
+        self.doc_page.text = f"{self.documents[doc][3]}/{len(self.whole_doc)}"
+        self.doc_text.text = self.whole_doc[int(self.doc_page.text.rsplit("/")[0])-1]
+
+    def _flip_page(self, instance, direction):
+        # 1-indexed to 0-indexed for proper text mapping
+        curr_page = int(self.doc_page.text.rsplit("/")[0])
+        if (curr_page == len(self.whole_doc)\
+            and direction == "next")\
+            or\
+            ((curr_page-1 == 0) and direction == "prev"):
+            return
+        curr_page = curr_page if direction == "next"\
+              else curr_page-2
+        # New page 
+        self.doc_text.text = self.whole_doc[curr_page]
+        self.doc_page.text = f"{curr_page+1}/{len(self.whole_doc)}"
 
     @thread
-    def _extract_pdf(self, input):
-        self.document_text = extract_text(BytesIO(input))
-        self._update_txt(self.document_text)
+    def _extract_pdf(self, input, doc):
+        self.whole_doc = extract_text(BytesIO(input))
+        self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
+                               for i in range(0, len(self.whole_doc), TXT_LIMIT)]
+        self._update_txt(doc)
 
     def _read_doc(self, instance, doc):
         if (self.book_title.text == self.documents[doc][0]):
             return
         self.doc_text.text = "Loading.."
         self.book_title.text = self.documents[doc][0]
-        self._extract_pdf(input=self.documents[doc][1])
+        print(self.documents[doc][2])
+        if (self.documents[doc][2] == "pdf"):
+            self._extract_pdf(input=self.documents[doc][1], doc=doc)
+        # TXT files
+        else:
+            self.whole_doc = self.documents[doc][1].decode()
+            self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
+                               for i in range(0, len(self.whole_doc), TXT_LIMIT)]
+            self._update_txt(doc)
         return
     
     def _refresh_doc(self, instance):
@@ -522,14 +547,19 @@ class Home(Screen, FloatLayout):
         self.doc_layout.bind(minimum_height=self.doc_layout.setter('height'))
         self.doc_scroll.add_widget(self.doc_layout)
         self.doc_text = Label(text="",
-                              text_size=(450,500),
-                              size=(450,500),
+                              text_size=(450,400),
                               font_name="YaHei",
                               color=PURPLE,
                               font_size=16,
                               halign='left',
                               valign='top',
-                              pos_hint={"center_x": .505, "center_y": .45})   
+                              pos_hint={"center_x": .505, "center_y": .53})
+        self.doc_page = Label(text="0/0",
+                              font_name="YaHei",
+                              color=PURPLE,
+                              font_size=16,
+                              halign='center',
+                              pos_hint={"center_x": .5, "center_y": .15})     
         self.refresh_but = Button(text="",
                                 size_hint=(None,None),
                                 size=(52,56),
@@ -539,9 +569,30 @@ class Home(Screen, FloatLayout):
                                 background_down=
                                 "doc/images/Reading_page/refresh_down.png")
         self.refresh_but.bind(on_release=self._refresh_doc)
+        self.prev_pg_but = Button(text="",
+                                size_hint=(None,None),
+                                size=(52,56),
+                                pos_hint={'center_x': .35, 'center_y': .15},
+                                background_normal=
+                                "doc/images/Reading_page/left_arrow.png",
+                                background_down=
+                                "doc/images/Reading_page/left_arrow_down.png")
+        self.prev_pg_but.bind(on_release=partial(self._flip_page, direction="prev"))
+        self.next_pg_but = Button(text="",
+                                size_hint=(None,None),
+                                size=(52,56),
+                                pos_hint={'center_x': .65, 'center_y': .15},
+                                background_normal=
+                                "doc/images/Reading_page/right_arrow.png",
+                                background_down=
+                                "doc/images/Reading_page/right_arrow_down.png")
+        self.next_pg_but.bind(on_release=partial(self._flip_page, direction="next"))
         self.book_layout.add_widget(self.book_panel)
         self.book_layout.add_widget(self.doc_text)
         self.book_layout.add_widget(self.book_title)
+        self.book_layout.add_widget(self.doc_page)
+        self.book_layout.add_widget(self.prev_pg_but)
+        self.book_layout.add_widget(self.next_pg_but)
         self.book_mat_layout.add_widget(self.book_panel2)
         self.book_mat_layout.add_widget(self.doc_scroll)
         self.book_mat_layout.add_widget(self.book_timer)

@@ -48,7 +48,7 @@ class Run(App):
         self.login = login.Login(name="Login Page")
         self.register = register.Register(name="Register Page")
         screens = [
-                    # self.splash,
+                    self.splash,
                     self.login,
                     self.register,
                     ]

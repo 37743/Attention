@@ -194,7 +194,7 @@ class Login(Screen, FloatLayout):
                                 halign='left',
                                 pos_hint={'center_x': .24, 'center_y': .5})
         self.login_layout.add_widget(self.user_label)
-        self.user_box = TextInput(text="yousef43",
+        self.user_box = TextInput(text="",
                                   multiline=False,
                                   size_hint = (.75,.4),
                                   font_name="YaHei",
@@ -215,7 +215,7 @@ class Login(Screen, FloatLayout):
                                 halign='left',
                                 pos_hint={'center_x': .24, 'center_y': .5})
         self.login_layout.add_widget(self.pass_label)
-        self.pass_box = TextInput(text="37743",
+        self.pass_box = TextInput(text="",
                                 multiline=False,
                                 size_hint = (.75,.4),
                                 font_name="YaHei",

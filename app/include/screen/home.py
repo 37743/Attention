@@ -155,6 +155,46 @@ class Home(Screen, FloatLayout):
             cn.close()
         except mysql.connector.Error as e:
             print(f"{e}")
+        for i in [1,0,2]: # 2nd, 1st and 3rd respectively
+            top_layout = FloatLayout()
+            top_panel = Image(source="app/doc/images/Home_page_shapes/ldr_BG.png",
+                            size=(125/(i*.3+1),161/(i*.3+1)),
+                            size_hint=(None,None),
+                            pos_hint={"center_x": .5, "center_y": .5})
+            top_layout.add_widget(top_panel)
+            top_pfp = "doc/images/Profile_page/pfp_default.png"\
+            if (result[i][2] == b'') else make_img(result[i][2],
+                               f"app/doc/images/Home_page_shapes/top_{i+1}")
+            top_pfp_layout = FloatLayout(size=(75/(i*.3+1),75/(i*.3+1)),
+                                      size_hint=(None,None),
+                                      pos_hint={'center_x': .5, 'center_y': .7-i*.05})
+            top_pfp_layout.add_widget(Image(source=top_pfp,
+                                            size=(75,75),
+                                            pos_hint={"center_x": .5, "center_y": .5}))
+            top_pfp_layout.add_widget(Image(source="doc/images/Home_page_shapes/top_border.png",
+                                            size=(75,75),
+                                            pos_hint={"center_x": .5, "center_y": .5}))
+            top_pfp_layout.add_widget(Image(source=f"doc/images/Home_page_shapes/{i+1}.png",
+                                            size_hint=(None,None),
+                                            size=(35/(i*.3+1),42/(i*.3+1)),
+                                            pos_hint={"center_x": .8, "center_y": .15}))
+            top_pfp_layout.add_widget(Label(text=result[i][0] if len(result[i][0]) < 10\
+                                                                      else result[i][0][:10] + "..",
+                                        font_name="Dosis",
+                                        color="ffffff",
+                                        font_size=18,
+                                        halign='center',
+                                        pos_hint={"center_x": .5, 'center_y': -.2}))
+            xp = str(result[i][1]) if len(str(result[i][1])) < 6\
+                        else str(result[i][1])[:6] + ".."
+            top_pfp_layout.add_widget(Label(text=f"XP: {xp}",
+                                        font_name="Dosis",
+                                        color=CYAN,
+                                        font_size=16,
+                                        halign='center',
+                                        pos_hint={"center_x": .5, 'center_y': -.6}))
+            top_layout.add_widget(top_pfp_layout)
+            self.topu_layout.add_widget(top_layout)
         for idx, row in enumerate(result):
             row_layout = BoxLayout(orientation="horizontal")
             row_layout.add_widget(Label(text=f"#{idx+1}",
@@ -604,11 +644,16 @@ class Home(Screen, FloatLayout):
                                   color=PURPLE,
                                   font_size=36,
                                   halign='center',
-                                  pos_hint={"center_x": .5, "center_y": .88})
+                                  pos_hint={"center_x": .5, "center_y": .9})
+        self.topu_layout = BoxLayout(orientation="horizontal",
+                                    size_hint=(None,None),
+                                    size=(550,161),
+                                    padding=(50,0),
+                                    pos_hint={"center_x": .5, "center_y": .73})
         self.rank_layout = BoxLayout(orientation="horizontal",
                                      size_hint_x=None,
                                      size=(550,35),
-                                     pos_hint={"center_x": .5, "center_y": .59})
+                                     pos_hint={"center_x": .5, "center_y": .58})
         self.rank_layout.add_widget(Label(text="Rank",
                                     font_name="YaHei",
                                     color=GRAY,
@@ -626,7 +671,7 @@ class Home(Screen, FloatLayout):
                                     halign='center'))
         self.home_scroll = ScrollView(size=(550,280),
                                      size_hint=(None, None),
-                                     pos_hint={"center_x": .505, "center_y": .35},
+                                     pos_hint={"center_x": .505, "center_y": .34},
                                      bar_color = PURPLE,
                                      bar_inactive_color = GRAY,
                                      bar_width = 8,
@@ -645,6 +690,7 @@ class Home(Screen, FloatLayout):
             exec(f"self.{widget}_layout.add_widget(self.{widget}_panel)")
             exec(f"self.{widget}_layout.add_widget(self.{widget}_title)")
         self.home_scroll.add_widget(self.home_ldrb_grid)
+        self.home_layout.add_widget(self.topu_layout)
         self.home_layout.add_widget(self.rank_layout)
         self.home_layout.add_widget(self.home_scroll)
         self.add_widget(self.home_layout)

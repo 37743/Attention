@@ -27,8 +27,7 @@ This project is a desktop application designed to assist individuals with disabi
 ## Features:
 - Upload your own studying material, your own rules![^1]
 - Sign-up and compete with others for prestigious badges, aim for the best ranking!
-- Real-time assistive evaluation,we will support you throughout the whole process!
-- Personalized configuration, suit the application to your own needs![^2]
+- Real-time assistive evaluation,we will support you throughout the whole process![^2]
 - ... and more!
 
 ## Usage
@@ -36,7 +35,7 @@ This project is a desktop application designed to assist individuals with disabi
    
 <div align="center">
 
-| ![insert_image1_here](app/doc/images/splash_screen/BG.png)|
+| ![insert_image1_here](snapshots/register-screen.jpg)|
 |:---:|
 | Registration Page |
 
@@ -46,7 +45,7 @@ This project is a desktop application designed to assist individuals with disabi
 
 <div align="center">
 
-| ![insert_image2_here](app/doc/images/splash_screen/BG.png)|
+| ![insert_image2_here](snapshots/login-screen.jpg)|
 |:---:|
 | Login Page |
 
@@ -56,7 +55,7 @@ This project is a desktop application designed to assist individuals with disabi
 
 <div align="center">
 
-| ![insert_image3_here](app/doc/images/splash_screen/BG.png)|
+| ![insert_image3_here](snapshots/add-material.jpg)|
 |:---:|
 | Upload Page |
 
@@ -66,7 +65,7 @@ This project is a desktop application designed to assist individuals with disabi
 
 <div align="center">
 
-| ![insert_image3_here](app/doc/images/splash_screen/BG.png)|
+| ![insert_image3_here](snapshots/reading-doc.jpg)|
 |:---:|
 | Document Page |
 
@@ -76,7 +75,7 @@ This project is a desktop application designed to assist individuals with disabi
 
 <div align="center">
 
-| ![insert_image3_here](app/doc/images/splash_screen/BG.png)|
+| ![insert_image3_here](snapshots/profile-screen.jpg)|
 |:---:|
 | Account Page |
 
@@ -84,9 +83,12 @@ This project is a desktop application designed to assist individuals with disabi
 
 ## Frequently Asked Questions (FAQ)
 
--
--
--
+- How do this application work for people of ADHD?
+- **ANSWER:** *This application utilizes the innate sense of competitiveness which is enforced by implementing a game-like experience system with rewards, the more you focus on the reading part, the more experience points you earn, thus motivating you to improve upon yourself while enjoying your time.*
+- How do I earn XP?
+- **ANSWER:** *You could earn experience points by simply uploading a document and reading said document for a set amount of time, the amount of points you get is dependent on your performance during reading, which is evaluated based on your ability to focus.*
+- Is my data safe?
+- **ANSWER:** *Yes, the database connection could only be achieved by secret keys which are obtained through an API request, and even if anyone was to get into our database, your passwords are securely hashed, which would, in turn, render the attacks useless. 
 
 ## Credits
 ### Hackathon Members & Contributors
@@ -96,10 +98,12 @@ This project is a desktop application designed to assist individuals with disabi
 - [@Desoky231](https://github.com/Desoky231) - **Abdelrahman Eldesoky**
 - [@e-ayman](https://github.com/e-ayman) - **Eyad Ayman**
 
-### Used Packages
--
--
--
+### Used Tools & Packages (Plenty of Thanks)
+- Kivy, a Python framework used for the graphical interface,
+- PDFMiner, for pdf files scrapping & text extraction,
+- MariaDB, for the relational database management system,
+- PHPMyAdmin, as a tool for SQL administration,
+- and OpenCV, for real-time computer vision.
 
-[^1]: Text1
-[^2]: Text2
+[^1]: Currently supported extensions are ".pdf" and ".txt".
+[^2]: Might force/request access to your camera in order to properly conduct eye-tracking.

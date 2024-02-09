@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>home_page</title>
+<style id="applicationStylesheet" type="text/css">
+	.mediaViewInfo {
+		--web-view-name: home_page;
+		--web-view-id: home_page;
+		--web-enable-deep-linking: true;
+	}
+	:root {
+		--web-view-ids: home_page;
+	}
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+		border: none;
+	}
+	#home_page {
+		position: absolute;
+		width: 1920px;
+		height: 3239px;
+		background-color: rgba(255,255,255,1);
+		overflow: hidden;
+		--web-view-name: home_page;
+		--web-view-id: home_page;
+		--web-enable-deep-linking: true;
+		
+	}
+	
+	#webb {
+		position: absolute;
+		width: 100%;
+		height: 1080px;
+		left: 0px;
+		top: 0px;
+		overflow: visible;
+	}
+	#CC {
+		position: absolute;
+		width: 198px;
+		height: 143px;
+		left: 72px;
+		top: 77px;
+		overflow: visible;
+	}
+	#HOME {
+		left: 401px;
+		top: 132px;
+		position: absolute;
+		overflow: visible;
+		width: 88px;
+		white-space: nowrap;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: bold;
+		font-size: 27px;
+		color: rgba(92,43,168,1);
+		transition: all 0.5s ease;
+	}
+	#HOME:hover{
+
+		transform: scale(1.3);
+		cursor: pointer;
+	}
+	#VISION:hover{
+
+		transform: scale(1.3);
+		cursor: pointer;
+	}
+	#CONTACT_US:hover{
+
+		transform: scale(1.3);
+		cursor: pointer;
+	}
+
+	#VISION {
+		left: 572px;
+		top: 132px;
+		position: absolute;
+		overflow: visible;
+		width: 100px;
+		white-space: nowrap;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: bold;
+		font-size: 27px;
+		color: rgba(92,43,168,1);
+		transition: all 0.5s ease;
+
+	}
+
+	#CONTACT_US {
+		left: 760px;
+		top: 132px;
+		position: absolute;
+		overflow: visible;
+		width: 182px;
+		white-space: nowrap;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: bold;
+		font-size: 27px;
+		color: rgba(92,43,168,1);
+		transition: all 0.5s ease;
+
+	}
+	#In_the_middle_of_a_storm {
+		left: 175px;
+		top: 363px;
+		position: absolute;
+		overflow: hidden;
+		width: 541px;
+		height: 43px;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: normal;
+		font-size: 38px;
+		color: rgba(112,112,112,1);
+	}
+	#with_you {
+		left: 176px;
+		top: 553px;
+		position: absolute;
+		overflow: visible;
+		width: 538px;
+		height: 194px;
+		text-align: center;
+		font-family: Dosis;
+		font-style: normal;
+		font-weight: 900;
+		font-size: 149px;
+		color: rgba(92,43,168,1);
+	}
+	#I_am {
+		left: 176px;
+		top: 406px;
+		position: absolute;
+		overflow: visible;
+		width: 538px;
+		height: 194px;
+		text-align: center;
+		font-family: Dosis;
+		font-style: normal;
+		font-weight: 900;
+		font-size: 149px;
+		color: rgba(92,43,168,1);
+	}
+	#Improve_your_study_routine_wit {
+		left: 195px;
+		top: 758px;
+		position: absolute;
+		overflow: visible;
+		width: 500px;
+		height: 117px;
+		line-height: 31px;
+		margin-top: -5px;
+		text-align: center;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: bold;
+		font-size: 21px;
+		color: rgba(112,112,112,1);
+	}
+	#Group_1 {
+		position: absolute;
+		width: 215px;
+		height: 70px;
+		left: 337px;
+		top: 883px;
+		overflow: visible;
+		cursor: pointer;
+	}
+	#Rectangle_2_r {
+		fill: url(#Rectangle_2_r);
+	}
+	.Rectangle_2_r {
+		position: absolute;
+		overflow: visible;
+		width: 215px;
+		height: 70px;
+		left: 0px;
+		top: 0px;
+	}
+	#TRY_IT {
+		left: 64px;
+		top: 18px;
+		position: absolute;
+		overflow: visible;
+		width: 88px;
+		white-space: nowrap;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: bold;
+		font-size: 27px;
+		color: rgba(255,255,255,1);
+	}
+	#VISION_t {
+		left: 176px;
+		top: 1191px;
+		position: absolute;
+		overflow: visible;
+		width: 238px;
+		white-space: nowrap;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: bold;
+		font-size: 65px;
+		color: rgba(92,43,168,1);
+	}
+	#CONTACT_US_u {
+		left: 176px;
+		top: 2363px;
+		position: absolute;
+		overflow: visible;
+		width: 436px;
+		white-space: nowrap;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: bold;
+		font-size: 65px;
+		color: rgba(92,43,168,1);
+	}
+	#look_g {
+		position: absolute;
+		width: 311px;
+		height: 233px;
+		left: 1293px;
+		top: 1191px;
+		overflow: visible;
+	}
+	#Our_vision_for_this_desktop_ap {
+		left: 175px;
+		top: 1302px;
+		position: absolute;
+		overflow: visible;
+		width: 1430px;
+		height: 1033px;
+		line-height: 61px;
+		margin-top: -13px;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: normal;
+		font-size: 35px;
+		color: rgba(112,112,112,1);
+	}
+	a:link {
+  		text-decoration:none;
+	}
+	a:active{
+		color: rgba(9,181,169,1);
+	}
+	
+	#FOR_FURTHER_INFORMAION_ {
+		left: 175px;
+		top: 2474px;
+		position: absolute;
+		overflow: hidden;
+		width: 541px;
+		height: 43px;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: normal;
+		font-size: 38px;
+		color: rgba(112,112,112,1);
+	}
+	#call {
+		position: absolute;
+		width: 464px;
+		height: 352px;
+		left: 829px;
+		top: 2603px;
+		overflow: visible;
+	}
+	#Group_85 {
+		position: absolute;
+		width: 587px;
+		height: 99px;
+		left: 176px;
+		top: 2603px;
+		overflow: visible;
+	}
+	#Group_84 {
+		position: absolute;
+		width: 25.943px;
+		height: 33.553px;
+		left: 0px;
+		top: 0.26px;
+		overflow: visible;
+	}
+	#Group_83 {
+		position: absolute;
+		width: 25.943px;
+		height: 33.553px;
+		left: 0px;
+		top: 0px;
+		overflow: visible;
+	}
+	#Ellipse_3 {
+		fill: rgba(92,43,168,1);
+	}
+	.Ellipse_3 {
+		position: absolute;
+		overflow: visible;
+		width: 16.103px;
+		height: 16.103px;
+		left: 4.473px;
+		top: 0px;
+	}
+	#Path_167 {
+		fill: rgba(92,43,168,1);
+	}
+	.Path_167 {
+		overflow: visible;
+		position: absolute;
+		width: 25.943px;
+		height: 18.345px;
+		left: 0px;
+		top: 15.208px;
+		transform: matrix(1,0,0,1,0,0);
+	}
+	#Abdelrahman_Eldesoky__abdelrhm {
+		left: 47px;
+		top: 0px;
+		position: absolute;
+		overflow: visible;
+		width: 541px;
+		height: 99px;
+		line-height: 51px;
+		margin-top: -10.5px;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: bold;
+		font-size: 30px;
+		color: rgba(112,112,112,1);
+	}
+	#Group_86 {
+		position: absolute;
+		width: 587px;
+		height: 99px;
+		left: 176px;
+		top: 2730px;
+		overflow: visible;
+	}
+	#Group_84_ {
+		position: absolute;
+		width: 25.943px;
+		height: 33.553px;
+		left: 0px;
+		top: 0.26px;
+		overflow: visible;
+	}
+	#Group_83_ {
+		position: absolute;
+		width: 25.943px;
+		height: 33.553px;
+		left: 0px;
+		top: 0px;
+		overflow: visible;
+	}
+	#Ellipse_3_ {
+		fill: rgba(92,43,168,1);
+	}
+	.Ellipse_3_ {
+		position: absolute;
+		overflow: visible;
+		width: 16.103px;
+		height: 16.103px;
+		left: 4.473px;
+		top: 0px;
+	}
+	#Path_167_ {
+		fill: rgba(92,43,168,1);
+	}
+	.Path_167_ {
+		overflow: visible;
+		position: absolute;
+		width: 25.943px;
+		height: 18.345px;
+		left: 0px;
+		top: 15.208px;
+		transform: matrix(1,0,0,1,0,0);
+	}
+	#Ahmed_Farghly__ahmedabdelfatah {
+		left: 47px;
+		top: 0px;
+		position: absolute;
+		overflow: hidden;
+		width: 541px;
+		height: 99px;
+		line-height: 51px;
+		margin-top: -10.5px;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: bold;
+		font-size: 30px;
+		color: rgba(112,112,112,1);
+	}
+	#Group_87 {
+		position: absolute;
+		width: 587px;
+		height: 99px;
+		left: 176px;
+		top: 2857px;
+		overflow: visible;
+	}
+	#Group_84_bc {
+		position: absolute;
+		width: 25.943px;
+		height: 33.553px;
+		left: 0px;
+		top: 0.26px;
+		overflow: visible;
+	}
+	#Group_83_bd {
+		position: absolute;
+		width: 25.943px;
+		height: 33.553px;
+		left: 0px;
+		top: 0px;
+		overflow: visible;
+	}
+	#Ellipse_3_be {
+		fill: rgba(92,43,168,1);
+	}
+	.Ellipse_3_be {
+		position: absolute;
+		overflow: visible;
+		width: 16.103px;
+		height: 16.103px;
+		left: 4.473px;
+		top: 0px;
+	}
+	#Path_167_bf {
+		fill: rgba(92,43,168,1);
+	}
+	.Path_167_bf {
+		overflow: visible;
+		position: absolute;
+		width: 25.943px;
+		height: 18.345px;
+		left: 0px;
+		top: 15.208px;
+		transform: matrix(1,0,0,1,0,0);
+	}
+	#EyadAyman_eyadaymangmailcom {
+		left: 47px;
+		top: 0px;
+		position: absolute;
+		overflow: visible;
+		width: 541px;
+		height: 99px;
+		line-height: 51px;
+		margin-top: -10.5px;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: bold;
+		font-size: 30px;
+		color: rgba(112,112,112,1);
+	}
+	#Group_88 {
+		position: absolute;
+		width: 587px;
+		height: 99px;
+		left: 176px;
+		top: 2984px;
+		overflow: visible;
+	}
+	#Group_84_bi {
+		position: absolute;
+		width: 25.943px;
+		height: 33.553px;
+		left: 0px;
+		top: 0.26px;
+		overflow: visible;
+	}
+	#Group_83_bj {
+		position: absolute;
+		width: 25.943px;
+		height: 33.553px;
+		left: 0px;
+		top: 0px;
+		overflow: visible;
+	}
+	#Ellipse_3_bk {
+		fill: rgba(92,43,168,1);
+	}
+	.Ellipse_3_bk {
+		position: absolute;
+		overflow: visible;
+		width: 16.103px;
+		height: 16.103px;
+		left: 4.473px;
+		top: 0px;
+	}
+	#Path_167_bl {
+		fill: rgba(92,43,168,1);
+	}
+	.Path_167_bl {
+		overflow: visible;
+		position: absolute;
+		width: 25.943px;
+		height: 18.345px;
+		left: 0px;
+		top: 15.208px;
+		transform: matrix(1,0,0,1,0,0);
+	}
+	#Yousef_Gomaa__yousefgomaagmail {
+		left: 47px;
+		top: 0px;
+		position: absolute;
+		overflow: visible;
+		width: 541px;
+		height: 99px;
+		line-height: 51px;
+		margin-top: -10.5px;
+		text-align: left;
+		font-family: Microsoft YaHei UI;
+		font-style: normal;
+		font-weight: bold;
+		font-size: 30px;
+		color: rgba(112,112,112,1);
+	}
+
+</style>
+<script id="applicationScript" type="text/javascript" src="home_page.js"></script>
+</head>
+<body>
+<div id="home_page">
+	<img id="webb" src="webb.png" srcset="webb.png 1x">
+		
+	<img id="CC" src="CC.png" srcset="CC.png 1x">
+	<div style="width:50%;">
+		<div id="HOME">
+			<span><a href="">HOME</a></span>
+
+		</div>
+		<div id="VISION">
+			<span><a href="#VISION_t">VISION</a></span>
+		</div>
+		<div id="CONTACT_US">
+			<span><a href="#CONTACT_US_u">CONTACT US</a></span>
+		</div>
+	</div>	
+	<div id="In_the_middle_of_a_storm">
+		<span>In the middle </span><span style="font-style:normal;font-weight:bold;">of a storm</span>
+	</div>
+	<div id="with_you">
+		<span></span><span style="color:rgba(9,181,169,1);">with you</span>
+	</div>
+	<div id="I_am">
+		<span>I am</span>
+	</div>
+	<div id="Improve_your_study_routine_wit">
+		<span>Improve your study routine with our ADHD-friendly app – stay focused, conquer challenges, and achieve success effortlessly.</span>
+	</div>
+	<button  id="Group_1" onclick="window.location.href='https://github.com/37743/Attention'">
+		<svg class="Rectangle_2_r">
+			<linearGradient id="Rectangle_2_r" spreadMethod="pad" x1="1" x2="0" y1="0.5" y2="0.5">
+				<stop offset="0" stop-color="#09b5a9" stop-opacity="1"></stop>
+				<stop offset="1" stop-color="#5c2ba8" stop-opacity="1"></stop>
+			</linearGradient>
+			<rect id="Rectangle_2_r" rx="21" ry="21" x="0" y="0" width="215" height="70">
+			</rect>
+		</svg>
+		<div id="TRY_IT">
+			<span>TRY IT</span>
+		</div>
+	</button >
+	<div id="VISION_t">
+		<span>VISION</span>
+	</div>
+	<div id="CONTACT_US_u">
+		<span>CONTACT US</span>
+	</div>
+	<img id="look_g" src="look_g.png" srcset="look_g.png 1x">
+		
+	<div id="Our_vision_for_this_desktop_ap">
+		<span>Our vision for this desktop application is to improve the <br/>educational experience for individuals with disabilities, fostering <br/>an inclusive and empowering learning environment. By harnessing <br/>the power of innovative features such as eye tracing technology, the application ensures that attention is seamlessly directed to the educational material, enhancing engagement for those who may face challenges in traditional learning settings. Emphasizing autonomy, users can effortlessly upload their own studying material and customize the application to adhere to their unique learning styles and preferences. Beyond individual progression, the application promotes a sense of community by offering a competitive edge—users can sign up and engage in friendly competition, earning prestigious badges and striving for the top ranking. The real-time assistive evaluation feature stands as a constant pillar of support throughout the entire learning journey, providing personalized assistance tailored to individual needs. Our vision is to create a tool that not only facilitates education but also empowers individuals with disabilities, allowing them to flourish in an accessible and enjoyable educational landscape.</span>
+	</div>
+	<div id="FOR_FURTHER_INFORMAION_">
+		<span>FOR FURTHER INFORMAION </span>
+	</div>
+	<img id="call" src="call.png" srcset="call.png 1x">
+		
+	<div id="Group_85">
+		<div id="Group_84">
+			<div id="Group_83">
+				<svg class="Ellipse_3">
+					<ellipse id="Ellipse_3" rx="8.051337242126465" ry="8.051337242126465" cx="8.051337242126465" cy="8.051337242126465">
+					</ellipse>
+				</svg>
+				<svg class="Path_167" viewBox="0 0 25.943 18.345">
+					<path id="Path_167" d="M 12.97159767150879 0 C 20.13561248779297 0 25.94319534301758 5.807582378387451 25.94319534301758 12.97159767150879 C 25.94319534301758 20.13561248779297 0 20.13561248779297 0 12.97159767150879 C 0 5.807582378387451 5.807582378387451 0 12.97159767150879 0 Z">
+					</path>
+				</svg>
+			</div>
+		</div>
+		<div id="Abdelrahman_Eldesoky__abdelrhm">
+			<span>Abdelrahman Eldesoky </span><br/><span style="font-style:normal;font-weight:normal;">abdelrhmaneldesoky@gmail.com</span>
+		</div>
+	</div>
+	<div id="Group_86">
+		<div id="Group_84_">
+			<div id="Group_83_">
+				<svg class="Ellipse_3_">
+					<ellipse id="Ellipse_3_" rx="8.051337242126465" ry="8.051337242126465" cx="8.051337242126465" cy="8.051337242126465">
+					</ellipse>
+				</svg>
+				<svg class="Path_167_" viewBox="0 0 25.943 18.345">
+					<path id="Path_167_" d="M 12.97159767150879 0 C 20.13561248779297 0 25.94319534301758 5.807582378387451 25.94319534301758 12.97159767150879 C 25.94319534301758 20.13561248779297 0 20.13561248779297 0 12.97159767150879 C 0 5.807582378387451 5.807582378387451 0 12.97159767150879 0 Z">
+					</path>
+				</svg>
+			</div>
+		</div>
+		<div id="Ahmed_Farghly__ahmedabdelfatah">
+			<span>Ahmed Farghly </span><br/><span style="font-style:normal;font-weight:normal;">ahmed.abdelfatah@ejust.edu.eg</span><br/>
+		</div>
+	</div>
+	<div id="Group_87">
+		<div id="Group_84_bc">
+			<div id="Group_83_bd">
+				<svg class="Ellipse_3_be">
+					<ellipse id="Ellipse_3_be" rx="8.051337242126465" ry="8.051337242126465" cx="8.051337242126465" cy="8.051337242126465">
+					</ellipse>
+				</svg>
+				<svg class="Path_167_bf" viewBox="0 0 25.943 18.345">
+					<path id="Path_167_bf" d="M 12.97159767150879 0 C 20.13561248779297 0 25.94319534301758 5.807582378387451 25.94319534301758 12.97159767150879 C 25.94319534301758 20.13561248779297 0 20.13561248779297 0 12.97159767150879 C 0 5.807582378387451 5.807582378387451 0 12.97159767150879 0 Z">
+					</path>
+				</svg>
+			</div>
+		</div>
+		<div id="EyadAyman_eyadaymangmailcom">
+			<span>EyadAyman</span><br/><span style="font-style:normal;font-weight:normal;">eyadayman@gmail.com</span>
+		</div>
+	</div>
+	<div id="Group_88">
+		<div id="Group_84_bi">
+			<div id="Group_83_bj">
+				<svg class="Ellipse_3_bk">
+					<ellipse id="Ellipse_3_bk" rx="8.051337242126465" ry="8.051337242126465" cx="8.051337242126465" cy="8.051337242126465">
+					</ellipse>
+				</svg>
+				<svg class="Path_167_bl" viewBox="0 0 25.943 18.345">
+					<path id="Path_167_bl" d="M 12.97159767150879 0 C 20.13561248779297 0 25.94319534301758 5.807582378387451 25.94319534301758 12.97159767150879 C 25.94319534301758 20.13561248779297 0 20.13561248779297 0 12.97159767150879 C 0 5.807582378387451 5.807582378387451 0 12.97159767150879 0 Z">
+					</path>
+				</svg>
+			</div>
+		</div>
+		<div id="Yousef_Gomaa__yousefgomaagmail">
+			<span>Yousef Gomaa </span><br/><span style="font-style:normal;font-weight:normal;">yousefgomaa@gmail.com</span>
+		</div>
+	</div>	
+
+</div>
+</body>
+</html>

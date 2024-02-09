@@ -28,6 +28,7 @@ This project is a desktop application designed to assist individuals with disabi
 - Upload your own studying material, your own rules![^1]
 - Sign-up and compete with others for prestigious badges, aim for the best ranking!
 - Real-time assistive evaluation,we will support you throughout the whole process![^2]
+- Customize your profile by uploading a picture for your profile!
 - ... and more!
 
 ## Usage
@@ -84,11 +85,11 @@ This project is a desktop application designed to assist individuals with disabi
 ## Frequently Asked Questions (FAQ)
 
 - How do this application work for people of ADHD?
-- **ANSWER:** *This application utilizes the innate sense of competitiveness which is enforced by implementing a game-like experience system with rewards, the more you focus on the reading part, the more experience points you earn, thus motivating you to improve upon yourself while enjoying your time.*
+  - **ANSWER:** *This application utilizes the innate sense of competitiveness which is enforced by implementing a game-like experience system with rewards, the more you focus on the reading part, the more experience points you earn, thus motivating you to improve upon yourself while enjoying your time.*
 - How do I earn XP?
-- **ANSWER:** *You could earn experience points by simply uploading a document and reading said document for a set amount of time, the amount of points you get is dependent on your performance during reading, which is evaluated based on your ability to focus.*
+  - **ANSWER:** *You could earn experience points by simply uploading a document and reading said document for a set amount of time, the amount of points you get is dependent on your performance during reading, which is evaluated based on your ability to focus.*
 - Is my data safe?
-- **ANSWER:** *Yes, the database connection could only be achieved by secret keys which are obtained through an API request, and even if anyone was to get into our database, your passwords are securely hashed, which would, in turn, render the attacks useless.*
+  - **ANSWER:** *Yes, the database connection could only be achieved by secret keys which are obtained through an API request, and even if anyone was to get into our database, your passwords are securely hashed, which would, in turn, render the attacks useless.*
 
 ## Credits
 ### Hackathon Members & Contributors

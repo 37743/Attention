@@ -42,7 +42,7 @@ This project is a desktop application designed to assist individuals with disabi
 
 </div>
 
-1. Login using your credentials.
+2. Login using your credentials.
 
 <div align="center">
 
@@ -52,7 +52,7 @@ This project is a desktop application designed to assist individuals with disabi
 
 </div>
 
-2. Upload your document.
+3. Upload your document.
 
 <div align="center">
 
@@ -62,23 +62,33 @@ This project is a desktop application designed to assist individuals with disabi
 
 </div>
 
-3. Start reading.
+4. Start reading.
 
 <div align="center">
 
-| ![insert_image3_here](snapshots/reading-doc.jpg)|
+| ![insert_image4_here](snapshots/reading-doc.jpg)|
 |:---:|
 | Document Page |
 
 </div>
 
-1. Get rewarded with fantastic-looking badges.
+5. Get rewarded with fantastic-looking badges.
 
 <div align="center">
 
-| ![insert_image3_here](snapshots/profile-screen.jpg)|
+| ![insert_image5_here](snapshots/profile-screen.jpg)|
 |:---:|
 | Account Page |
+
+</div>
+
+6. Check out your placement on the leaderboard.
+
+<div align="center">
+
+| ![insert_image6_here](snapshots/home-screen.jpg)|
+|:---:|
+| Home Page |
 
 </div>
 

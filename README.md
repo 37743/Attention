@@ -88,7 +88,7 @@ This project is a desktop application designed to assist individuals with disabi
 - How do I earn XP?
 - **ANSWER:** *You could earn experience points by simply uploading a document and reading said document for a set amount of time, the amount of points you get is dependent on your performance during reading, which is evaluated based on your ability to focus.*
 - Is my data safe?
-- **ANSWER:** *Yes, the database connection could only be achieved by secret keys which are obtained through an API request, and even if anyone was to get into our database, your passwords are securely hashed, which would, in turn, render the attacks useless. 
+- **ANSWER:** *Yes, the database connection could only be achieved by secret keys which are obtained through an API request, and even if anyone was to get into our database, your passwords are securely hashed, which would, in turn, render the attacks useless.*
 
 ## Credits
 ### Hackathon Members & Contributors

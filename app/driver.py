@@ -23,35 +23,21 @@ from kivy.uix.screenmanager import (ScreenManager,
 # Screens
 from include.screen import (splash,
                             login,
-                            register
-                            )
+                            register)
 # JSON Reading
 import json
-# Multiprocessing
-import threading
-# Eyetracker
-# from script.EyeTracking.cv import GazeTracker
-
-def thread(function):
-    ''' Creates a new thread with a process using the input function'''
-    def wrap(*args, **kwargs):
-        t = threading.Thread(target=function, args=args, kwargs=kwargs, daemon=True)
-        t.start()
-        return t
-    return wrap
 
 class Run(App):
     ''' Driver code for the application, contains a screen manager
     that controls which interface is shown to the user at a time.'''
     def build(self):
-        # self.do_stuff()
         self.screen_manager = ScreenManager(transition = FadeTransition())
         self.version_data = ""
         with open("app/include/config/settings.json") as json_file:
             self.version_data = json.load(json_file)
         self.db_cred = {}
         # File is omitted, added to .gitignore for security reasons. ^^
-        # TODO: Replace with an API that obtains the data.
+        # TODO: Repl`ace with an API that obtains the data.
         with open("app/include/config/sqlauth.json") as db_file:
                 self.db_cred = json.load(db_file)
         # vv Stores current application user
@@ -62,7 +48,7 @@ class Run(App):
         self.login = login.Login(name="Login Page")
         self.register = register.Register(name="Register Page")
         screens = [
-                    # self.splash,
+                    self.splash,
                     self.login,
                     self.register,
                     ]
@@ -70,16 +56,14 @@ class Run(App):
             self.screen_manager.add_widget(screen)
         return self.screen_manager
     
-    # @thread
-    # def do_stuff(self):
-    #     ''' TODO: Use this part elsewhere '''
-    #     et = GazeTracker()
-    
     def get_title(self):
         ''' Build the title for the current version of the application.'''
         return "Attention\t-\t"+str(self.version_data['version'])\
             +"\t-\t"+str(self.version_data['config'][0]['date'])
     
+    def open_settings(self, *largs):
+        pass
+
 if __name__ == '__main__':
     main = Run()
     main.run()

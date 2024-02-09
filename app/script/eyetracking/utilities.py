@@ -15,6 +15,10 @@ YAHEI_FONT = "doc/fonts/MicrosoftYaHeiUI.ttf"
 # Supported Material Data Types
 SUPPORTED_TYPES = [["pdf", "txt"],
                    ["png", "jpeg", "jpg"]]
+
+# Text Limit
+TXT_LIMIT = 494
+
 # Kivy Window Size
 WINDOW_SIZE = (1024, 640)
 
@@ -28,7 +32,7 @@ RIGHT_EYE=[ 33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 1
 RIGHT_EYEBROW=[ 70, 63, 105, 66, 107, 55, 65, 52, 53, 46 ]
 FACE_OVAL=[ 10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103,67, 109]
 
-class euclideanDistance:
+class EuclideanDistance:
     ''' Calculates the euclidean distance between 2 points.'''
     def solve(point, point1):
         x, y = point

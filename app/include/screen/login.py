@@ -115,6 +115,8 @@ class Login(Screen, FloatLayout):
                 self._login_error()
             cn.close()
         except mysql.connector.Error as e:
+            self.login_result.text="Server is currently offline."
+            self._login_error()
             print(f"{e}")
 
     def __init__(self, **kwargs):
@@ -192,18 +194,19 @@ class Login(Screen, FloatLayout):
                                 halign='left',
                                 pos_hint={'center_x': .24, 'center_y': .5})
         self.login_layout.add_widget(self.user_label)
-        self.user_box = TextInput(multiline=False,
-                                size_hint = (.75,.4),
-                                font_name="YaHei",
-                                cursor_color=GRAY,
-                                font_size=13,
-                                foreground_color=GRAY,
-                                write_tab=False,
-                                padding=(10,10),
-                                hint_text = "",
-                                background_normal="doc/images/Login_shapes/TextBox.png",
-                                background_active="doc/images/Login_shapes/TextBox_active.png",
-                                pos_hint={'center_x': .5, 'center_y': .5})
+        self.user_box = TextInput(text="",
+                                  multiline=False,
+                                  size_hint = (.75,.4),
+                                  font_name="YaHei",
+                                  cursor_color=GRAY,
+                                  font_size=13,
+                                  foreground_color=GRAY,
+                                  write_tab=False,
+                                  padding=(10,10),
+                                  hint_text = "",
+                                  background_normal="doc/images/Login_shapes/TextBox.png",
+                                  background_active="doc/images/Login_shapes/TextBox_active.png",
+                                  pos_hint={'center_x': .5, 'center_y': .5})
         self.login_layout.add_widget(self.user_box)
         self.pass_label = Label(text="Password",
                                 font_name="YaHei",
@@ -212,7 +215,8 @@ class Login(Screen, FloatLayout):
                                 halign='left',
                                 pos_hint={'center_x': .24, 'center_y': .5})
         self.login_layout.add_widget(self.pass_label)
-        self.pass_box = TextInput(multiline=False,
+        self.pass_box = TextInput(text="",
+                                multiline=False,
                                 size_hint = (.75,.4),
                                 font_name="YaHei",
                                 password=True,

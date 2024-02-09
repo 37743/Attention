@@ -8,12 +8,14 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.graphics import Rectangle
 from kivy.uix.image import Image
 from kivy.uix.label import Label
-from kivy.uix.behaviors import ToggleButtonBehavior
-from kivy.core.text import LabelBase
+from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.behaviors import ToggleButtonBehavior
+from kivy.graphics import Rectangle
+from kivy.core.text import LabelBase
 from kivy.animation import Animation
 from functools import partial
 from kivy.clock import Clock
@@ -21,6 +23,7 @@ from kivy.clock import Clock
 from script.eyetracking.utilities import (DOSIS_FONT,
                                           YAHEI_FONT,
                                           SUPPORTED_TYPES,
+                                          TXT_LIMIT,
                                           GRAY,
                                           CYAN,
                                           PURPLE)
@@ -31,7 +34,16 @@ import tkinter as tk
 from tkinter import filedialog
 # MariaDB connector
 import mysql.connector
-# Binary Encoder/Decoder
+# Multiprocessing
+import threading
+# PDF Text Extraction
+from io import BytesIO
+from pdfminer.high_level import extract_text
+# Time Manipulation
+from datetime import (datetime,
+                      timedelta)
+# Eyetracker
+from script.eyetracking.cv import (GazeTracker, penalty)
 
 def change_to_screen(*args, screen):
     App.get_running_app().screen_manager.current = screen
@@ -58,12 +70,59 @@ def show_layout(*args, self, layout):
         show_again.start(self.profile_border)
     exec(f"show.start({layout})")
 
-
-def make_img(encoded_data):
-    filepath="app/doc/images/Profile_page/profile_pic.jpg"
+def make_img(encoded_data, path):
+    filepath=path
     with open(filepath, 'wb') as f:
         f.write(encoded_data)
     return filepath
+
+def thread(function):
+    ''' Creates a new thread with a process using the input function'''
+    def wrap(*args, **kwargs):
+        t = threading.Thread(target=function, args=args, kwargs=kwargs, daemon=True)
+        t.start()
+        return t
+    return wrap
+
+class NewPopup(Popup):
+    def __init__(self, func, doc_idx, title_text,
+                 label_text, button_text, **kwargs):
+        super(NewPopup, self).__init__(**kwargs)
+        self.popup_layout = BoxLayout(orientation="vertical",
+                                      pos_hint={'center_x': .5, 'center_y': .6},
+                                      spacing=10)
+        self.popup_layout.add_widget(Label(text=label_text,
+                                           halign="center",
+                                           markup=True,
+                                           line_height=1.2,
+                                           font_name="Dosis",
+                                           color=CYAN,
+                                           font_size=18,
+                                           ))
+        self.popup_but = Button(text=button_text, color = "ffffff",
+                                    font_name="Dosis",
+                                    size_hint=(None,None),
+                                    size=(140,37),
+                                    font_size=16,
+                                    pos_hint={'center_x': .5, 'center_y': .5},
+                                    background_normal=
+                                    "doc/images/Add_page/Btn1.png",
+                                    background_down=
+                                    "doc/images/Add_page/Btn1_down.png")
+        self.popup_but.bind(on_release=partial(func,
+                                               popup_obj=self,
+                                               doc=doc_idx))
+        self.popup_layout.add_widget(self.popup_but)
+        self.title = title_text
+        self.title_font = "Dosis"
+        self.title_color = PURPLE
+        self.title_size=32
+        self.title_align="center"
+        self.separator_height = 0
+        self.background = "app/doc/images/Reading_page/popup_reg.png"
+        self.size = (350,200)
+        self.size_hint=(None,None)
+        self.add_widget(self.popup_layout)
 
 class Home(Screen, FloatLayout):
     def _update_bg(self, instance, value):
@@ -76,6 +135,89 @@ class Home(Screen, FloatLayout):
         hide_layout(self=self, layout=init)
         show_layout(self=self, layout=final)
 
+    def _leaderboard(self):
+        result = []
+        try:
+            db_cred = App.get_running_app().db_cred
+            cn = mysql.connector.connect(
+                            user=db_cred['user'],
+                            password=db_cred['password'],
+                            host=db_cred['host'],
+                            database=db_cred['database'])
+            print("Connected!")
+            cr = cn.cursor()
+            u = self.user
+            cr.callproc("get_ldrb")
+            for res in cr.stored_results():
+                fetch = res.fetchall()
+                for row in fetch:
+                    result.append(row)
+            cn.close()
+        except mysql.connector.Error as e:
+            print(f"{e}")
+        for i in [1,0,2]: # 2nd, 1st and 3rd respectively
+            top_layout = FloatLayout()
+            top_panel = Image(source="app/doc/images/Home_page_shapes/ldr_BG.png",
+                            size=(125/(i*.3+1),161/(i*.3+1)),
+                            size_hint=(None,None),
+                            pos_hint={"center_x": .5, "center_y": .5})
+            top_layout.add_widget(top_panel)
+            top_pfp = "doc/images/Profile_page/pfp_default.png"\
+            if (result[i][2] == b'') else make_img(result[i][2],
+                               f"app/doc/images/Home_page_shapes/top_{i+1}")
+            top_pfp_layout = FloatLayout(size=(75/(i*.3+1),75/(i*.3+1)),
+                                      size_hint=(None,None),
+                                      pos_hint={'center_x': .5, 'center_y': .7-i*.05})
+            top_pfp_layout.add_widget(Image(source=top_pfp,
+                                            size=(75,75),
+                                            pos_hint={"center_x": .5, "center_y": .5}))
+            top_pfp_layout.add_widget(Image(source="doc/images/Home_page_shapes/top_border.png",
+                                            size=(75,75),
+                                            pos_hint={"center_x": .5, "center_y": .5}))
+            top_pfp_layout.add_widget(Image(source=f"doc/images/Home_page_shapes/{i+1}.png",
+                                            size_hint=(None,None),
+                                            size=(35/(i*.3+1),42/(i*.3+1)),
+                                            pos_hint={"center_x": .8, "center_y": .15}))
+            top_pfp_layout.add_widget(Label(text=result[i][0] if len(result[i][0]) < 10\
+                                                                      else result[i][0][:10] + "..",
+                                        font_name="Dosis",
+                                        color="ffffff",
+                                        font_size=18,
+                                        halign='center',
+                                        pos_hint={"center_x": .5, 'center_y': -.2}))
+            xp = str(result[i][1]) if len(str(result[i][1])) < 6\
+                        else str(result[i][1])[:6] + ".."
+            top_pfp_layout.add_widget(Label(text=f"XP: {xp}",
+                                        font_name="Dosis",
+                                        color=CYAN,
+                                        font_size=16,
+                                        halign='center',
+                                        pos_hint={"center_x": .5, 'center_y': -.6}))
+            top_layout.add_widget(top_pfp_layout)
+            self.topu_layout.add_widget(top_layout)
+        for idx, row in enumerate(result):
+            row_layout = BoxLayout(orientation="horizontal")
+            row_layout.add_widget(Label(text=f"#{idx+1}",
+                                        font_name="YaHei",
+                                        color=GRAY,
+                                        font_size=14,
+                                        halign='left',
+                                        pos_hint={'right': 0}))
+            row_layout.add_widget(Label(text=result[idx][0],
+                                        font_name="YaHei",
+                                        color=GRAY,
+                                        font_size=14,
+                                        halign='left',
+                                        pos_hint={'right': 0}))
+            row_layout.add_widget(Label(text=str(result[idx][1]),
+                                        font_name="YaHei",
+                                        color=GRAY,
+                                        font_size=14,
+                                        halign='left',
+                                        pos_hint={'right': 0}))
+            self.home_ldrb_grid.add_widget(row_layout)
+        return result
+    
     def _add_file(self, instance):
         root = tk.Tk()
         root.withdraw()
@@ -94,7 +236,7 @@ class Home(Screen, FloatLayout):
                     self.add_text.pos_hint = {'center_x':.5,
                                               'center_y':.3}
                     self.add_text.text = self.file_path.rsplit("/")[-1]
-    
+
     def _upload_file(self, instance):
         showtext = Animation(opacity=1, d=.5)
         hidetext = Animation(opacity=0, d=.5)
@@ -137,6 +279,182 @@ class Home(Screen, FloatLayout):
         Clock.schedule_once(lambda dt: showtext.start(self.mat_result), .5)
         Clock.schedule_once(lambda dt: hidetext.start(self.mat_result), 5)
         Clock.schedule_once(lambda dt: self.add_layout.remove_widget(self.mat_result), 6)
+
+    def _warning(self, instance, popup_obj, doc):
+        popup_obj.dismiss()
+        # TODO: Add more to this
+
+    def _time_inc(self, instance):
+        date = datetime.strptime(self.book_timer.text, "%H:%M:%S")
+        date += timedelta(seconds=1)
+        self.book_timer.text = datetime.strftime(date, "%H:%M:%S")
+        print(f"Recent:{penalty.recent} - "\
+                +f"Blinks:{penalty.blinks} - "\
+                +f"Left:{penalty.left} - "\
+                +f"Center:{penalty.center} - "\
+                +f"Right:{penalty.right}")
+        self.warning = self.warning + 1 if penalty.recent != "center" else 0
+        if (self.warning > 5):
+            Clock.unschedule(self._time_inc)
+            penalty.pause = True
+            # Reset
+            self.warning = 0
+            self.pause_popup = NewPopup(self._warning, None, "Paused",
+                                        f"WARNING!\n"\
+                                        +f"[color={PURPLE}]"+
+                                        f"You have not read anything in a while.",
+                                        "RESUME")
+            self.pause_popup.bind(on_dismiss=self._read_unpause)
+            self.pause_popup.open()
+
+    def _update_txt(self, doc):
+        self.doc_page.text = f"{self.documents[doc][3]}/{len(self.whole_doc)}"
+        self.doc_text.text = self.whole_doc[int(self.doc_page.text.rsplit("/")[0])-1]
+        # Start timer once loading has finished
+        self.timer = Clock.schedule_interval(self._time_inc, 1)
+
+    def _flip_page(self, instance, direction):
+        # 1-indexed to 0-indexed for proper text mapping
+        curr_page = int(self.doc_page.text.rsplit("/")[0])
+        if self.doc_page.text.rsplit("/")[1] == "0":
+            return
+        if (curr_page == len(self.whole_doc)\
+            and direction == "next")\
+            or\
+            ((curr_page-1 == 0) and direction == "prev"):
+            return
+        curr_page = curr_page if direction == "next"\
+              else curr_page-2
+        # New page 
+        self.doc_text.text = self.whole_doc[curr_page]
+        self.doc_page.text = f"{curr_page+1}/{len(self.whole_doc)}"
+
+    @thread
+    def _extract_pdf(self, input, doc):
+        self.whole_doc = extract_text(BytesIO(input))
+        self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
+                               for i in range(0, len(self.whole_doc), TXT_LIMIT)]
+        self._update_txt(doc)
+        penalty.reset = True
+    
+    def _read_start(self, instance, doc):
+        if (self.book_title.text == self.documents[doc][0]):
+            return
+        Clock.unschedule(self._time_inc)
+        self.start_popup = NewPopup(self._read_doc, doc, self.documents[doc][0],
+                                    f"Ready?\n"\
+                                    +f"[color={PURPLE}]"+
+                                    "WARNING: The timer will start ticking![/color]",
+                                    "YES")
+        self.start_popup.bind(on_dismiss=self._read_unpause)
+        self.start_popup.open()
+
+    def _read_doc(self, instance, popup_obj, doc):
+        popup_obj.dismiss()
+        # Assert that it is false.
+        penalty.end = False
+        if (self.refresh_but in self.book_mat_layout.children):
+            self.book_mat_layout.remove_widget(self.refresh_but)
+            self.book_mat_layout.add_widget(self.pause_but)
+        self.gt = self._start_tracker()
+        self.book_timer.text = "00:00:00"
+        Clock.unschedule(self._time_inc)
+        self.doc_text.text = "Loading.."
+        self.book_title.text = self.documents[doc][0]
+        if (self.documents[doc][2] == "pdf"):
+            self._extract_pdf(input=self.documents[doc][1], doc=doc)
+        # TXT files
+        else:
+            self.whole_doc = self.documents[doc][1].decode()
+            self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
+                               for i in range(0, len(self.whole_doc), TXT_LIMIT)]
+            self._update_txt(doc)
+            penalty.reset = True
+
+    def _read_pause(self, instance):
+        Clock.unschedule(self._time_inc)
+        penalty.pause = True
+        self.pause_popup = NewPopup(self._save_prog, None, "Paused",
+                                    f"Do you want to end session?\n"\
+                                    +f"[color={PURPLE}]"+
+                                    f"XP Gained:{penalty.center}",
+                                    "YES")
+        self.pause_popup.bind(on_dismiss=self._read_unpause)
+        self.pause_popup.open()
+
+    def _read_unpause(self, instance):
+        penalty.pause = False
+        Clock.schedule_interval(self._time_inc, 1)
+
+    def _save_prog(self, instance, popup_obj, doc):
+        popup_obj.dismiss()
+        Clock.unschedule(self._time_inc)
+        penalty.end = True
+        doc = self.book_title.text
+        self.book_title.text = "Document Title"
+        self.book_timer.text = "00:00:00"
+        user = self.user
+        xp = penalty.center
+        pg = int(self.doc_page.text.rsplit("/")[0])
+        self.doc_page.text = "0/0"
+        self.doc_text.text = ""
+        try:
+            db_cred = App.get_running_app().db_cred
+            cn = mysql.connector.connect(
+                            user=db_cred['user'],
+                            password=db_cred['password'],
+                            host=db_cred['host'],
+                            database=db_cred['database'])
+            print("Connected!")
+            cr = cn.cursor()
+            u = self.user
+            cr.callproc("save_prog", (user,doc,xp,pg))
+            cn.commit()
+            print("Success!")
+            cn.close()
+        except mysql.connector.Error as e:
+            print(f"{e}")
+
+    def _refresh_doc(self, instance):
+        self.doc_layout.clear_widgets()
+        result=[]
+        try:
+            db_cred = App.get_running_app().db_cred
+            cn = mysql.connector.connect(
+                            user=db_cred['user'],
+                            password=db_cred['password'],
+                            host=db_cred['host'],
+                            database=db_cred['database'])
+            print("Connected!")
+            cr = cn.cursor()
+            u = self.user
+            cr.callproc("get_doc", (u,))
+            for res in cr.stored_results():
+                fetch = res.fetchall()
+                for row in fetch:
+                    result.append(row)
+            cn.close()
+        except mysql.connector.Error as e:
+            print(f"{e}")
+        self.documents = result
+        for doc in self.documents:
+            doc_name = doc[0]
+            if (len(doc[0])>10):
+                doc_name = doc[0][:10]+".."
+            self.doc_layout.add_widget(Button(text=doc_name,
+                                              font_name="Dosis",
+                                              size=(125,35),
+                                              color=PURPLE,
+                                              font_size=16,
+                                              background_normal=
+                                              "doc/images/Reading_page/btn_invis.png",
+                                              background_down=
+                                              "doc/images/Reading_page/btn_shadow.png"))
+        # Kivy inserts new widgets at index 0,
+        # here we reverse the list to get the correct order.
+        for idx, widget in enumerate(reversed(self.doc_layout.children)):
+            widget.bind(on_release=partial(self._read_start, doc=idx))
+        return
 
     def _update_password(self, user, cursor):
         if ((len(self.pass_box.text) < 6)\
@@ -214,18 +532,13 @@ class Home(Screen, FloatLayout):
         
     def _get_badge(self, xp):
         if xp <= 1000:
-            return ("bronze",1000)
+            return ("dash",1000)
         elif xp <= 3000:
-            return ("silver",3000)
+            return ("bronze",3000)
+        elif xp <= 5000:
+            return ("silver",5000)
         else:
             return ("gold",9999999)
-        
-    def _logout_released(self, instance):
-        app = App.get_running_app()
-        app.login.login_result.text = "Logged out!"
-        app.login.pass_box.text = ""
-        change_to_screen(screen="Login Page")
-        Clock.schedule_once(lambda dt: app.screen_manager.remove_widget(app.home), 2)
 
     def _add_pfp(self, instance):
         root = tk.Tk()
@@ -238,6 +551,17 @@ class Home(Screen, FloatLayout):
                 if self.file_path.rsplit(".")[1] == type:
                     self.profile_pic.source = self.file_path
 
+    @thread
+    def _start_tracker(self):
+        GazeTracker()
+    
+    def _logout_released(self, instance):
+        app = App.get_running_app()
+        app.login.login_result.text = "Logged out!"
+        app.login.pass_box.text = ""
+        change_to_screen(screen="Login Page")
+        Clock.schedule_once(lambda dt: app.screen_manager.remove_widget(app.home), 2)
+        
     def __init__(self, **kwargs):
         super(Home, self).__init__(**kwargs)
         with self.canvas.before:
@@ -251,10 +575,13 @@ class Home(Screen, FloatLayout):
                             size_hint=(None,None),
                             pos_hint={"center_x": .06, "center_y": .91})
         self.add_widget(self.bw_logo)
-        #region Navigation Bar
+        # User's Essentials
+        self.user = App.get_running_app().user
         self.curr = "home"
         self.file_path = ""
-        self.user = App.get_running_app().user
+        self.documents = []
+        self.warning = 0
+        #region Navigation Bar
         self.nav_bar = BoxLayout(orientation="vertical",
                                  size_hint=(1,.5),
                                  pos_hint={"center_x": .05, "center_y": .5})
@@ -308,16 +635,65 @@ class Home(Screen, FloatLayout):
         #endregion
         #region Home Layout
         self.home_layout = FloatLayout(pos_hint={"center_x": .5, "center_y": .5})
-        self.home_panel = Image(source="app/doc/images/Home_page_shapes/panel_reg.png",
+        self.home_panel = Image(source="app/doc/images/Home_page_shapes/leaderboard_table_BG.png",
                                 size_hint=(None,None),
-                                size=(500,500),
-                                pos_hint={"center_x": .5, "center_y": .5})
-        self.home_title = Label(text="Home Panel Test",
+                                size=(600,467),
+                                pos_hint={"center_x": .5, "center_y": .47})
+        self.home_title = Label(text="Leaderboard",
                                   font_name="Dosis",
                                   color=PURPLE,
                                   font_size=36,
                                   halign='center',
-                                  pos_hint={"center_x": .5, "center_y": .5})
+                                  pos_hint={"center_x": .5, "center_y": .9})
+        self.topu_layout = BoxLayout(orientation="horizontal",
+                                    size_hint=(None,None),
+                                    size=(550,161),
+                                    padding=(50,0),
+                                    pos_hint={"center_x": .5, "center_y": .73})
+        self.rank_layout = BoxLayout(orientation="horizontal",
+                                     size_hint_x=None,
+                                     size=(550,35),
+                                     pos_hint={"center_x": .5, "center_y": .58})
+        self.rank_layout.add_widget(Label(text="Rank",
+                                    font_name="YaHei",
+                                    color=GRAY,
+                                    font_size=18,
+                                    halign='center'))
+        self.rank_layout.add_widget(Label(text="Username",
+                                    font_name="YaHei",
+                                    color=GRAY,
+                                    font_size=18,
+                                    halign='center'))
+        self.rank_layout.add_widget(Label(text="Total XP",
+                                    font_name="YaHei",
+                                    color=GRAY,
+                                    font_size=18,
+                                    halign='center'))
+        self.home_scroll = ScrollView(size=(550,280),
+                                     size_hint=(None, None),
+                                     pos_hint={"center_x": .505, "center_y": .34},
+                                     bar_color = PURPLE,
+                                     bar_inactive_color = GRAY,
+                                     bar_width = 8,
+                                     scroll_type = ['bars','content'])
+        self.home_ldrb_grid = GridLayout(cols=1,
+                                         spacing=5,
+                                         col_default_width=540,
+                                         col_force_default=True,
+                                         row_default_height=35,
+                                         row_force_default=True,
+                                         size_hint_y=None)
+        self.home_ldrb_grid.bind(minimum_height=\
+                                self.home_ldrb_grid.setter('height'))
+        self._leaderboard()
+        for widget in ["home"]:
+            exec(f"self.{widget}_layout.add_widget(self.{widget}_panel)")
+            exec(f"self.{widget}_layout.add_widget(self.{widget}_title)")
+        self.home_scroll.add_widget(self.home_ldrb_grid)
+        self.home_layout.add_widget(self.topu_layout)
+        self.home_layout.add_widget(self.rank_layout)
+        self.home_layout.add_widget(self.home_scroll)
+        self.add_widget(self.home_layout)
         #endregion
         #region Add Material Layout
         self.add_layout = FloatLayout(pos_hint={"center_x": 5, "center_y": .5},
@@ -413,25 +789,54 @@ class Home(Screen, FloatLayout):
                                 size=(536,503),
                                 opacity=.2,
                                 pos_hint={"center_x": .5, "center_y": .48})
-        self.book_title = Label(text="Book Title",
+        self.book_title = Label(text="Document Title",
                                   font_name="Dosis",
                                   color=PURPLE,
                                   font_size=36,
                                   halign='center',
-                                  pos_hint={"center_x": .5, "center_y": .91})
+                                  pos_hint={"center_x": .5, "center_y": .92})
         self.book_mat_layout = FloatLayout(pos_hint={"center_x": .85, "center_y": .5})
         self.book_panel2 = Image(source="app/doc/images/Home_page_shapes/book_panel_2.png",
                                 size_hint=(None,None),
                                 size=(185,503),
                                 opacity=.2,
                                 pos_hint={"center_x": .5, "center_y": .48})
-        self.u_hh, self.u_mm, self.u_ss = "00","00","00"
-        self.book_timer = Label(text=f"{self.u_hh}:{self.u_mm}:{self.u_ss}",
+        self.book_timer = Label(text="00:00:00",
                                   font_name="YaHei",
                                   color=GRAY,
                                   font_size=36,
                                   halign='center',
-                                  pos_hint={"center_x": .5, "center_y": .91})
+                                  pos_hint={"center_x": .5, "center_y": .92})
+        self.doc_scroll = ScrollView(size=(150,390),
+                                     size_hint=(None, None),
+                                     pos_hint={"center_x": .5, "center_y": .53},
+                                     bar_color = PURPLE,
+                                     bar_inactive_color = GRAY,
+                                     bar_width = 8,
+                                     scroll_type = ['bars','content'])
+        self.doc_layout = GridLayout(cols=1,
+                                     spacing=5,
+                                     col_default_width=125,
+                                     col_force_default=True,
+                                     row_default_height=35,
+                                     row_force_default=True,
+                                     size_hint_y=None)
+        self.doc_layout.bind(minimum_height=self.doc_layout.setter('height'))
+        self.doc_scroll.add_widget(self.doc_layout)
+        self.doc_text = Label(text="",
+                              text_size=(450,400),
+                              font_name="YaHei",
+                              color=PURPLE,
+                              font_size=16,
+                              halign='left',
+                              valign='top',
+                              pos_hint={"center_x": .505, "center_y": .53})
+        self.doc_page = Label(text="0/0",
+                              font_name="YaHei",
+                              color=PURPLE,
+                              font_size=16,
+                              halign='center',
+                              pos_hint={"center_x": .5, "center_y": .15})     
         self.refresh_but = Button(text="",
                                 size_hint=(None,None),
                                 size=(52,56),
@@ -440,9 +845,44 @@ class Home(Screen, FloatLayout):
                                 "doc/images/Reading_page/refresh.png",
                                 background_down=
                                 "doc/images/Reading_page/refresh_down.png")
+        self.refresh_but.bind(on_release=self._refresh_doc)
+        self.pause_but = Button(text="PAUSE/END", color = "ffffff",
+                                    font_name="Dosis",
+                                    size_hint=(None,None),
+                                    size=(140,37),
+                                    font_size=16,
+                                    pos_hint={'center_x': .5, 'center_y': .15},
+                                    background_normal=
+                                    "doc/images/Add_page/Btn1.png",
+                                    background_down=
+                                    "doc/images/Add_page/Btn1_down.png")
+        self.pause_but.bind(on_release=self._read_pause)
+        self.prev_pg_but = Button(text="",
+                                size_hint=(None,None),
+                                size=(52,56),
+                                pos_hint={'center_x': .35, 'center_y': .15},
+                                background_normal=
+                                "doc/images/Reading_page/left_arrow.png",
+                                background_down=
+                                "doc/images/Reading_page/left_arrow_down.png")
+        self.prev_pg_but.bind(on_release=partial(self._flip_page, direction="prev"))
+        self.next_pg_but = Button(text="",
+                                size_hint=(None,None),
+                                size=(52,56),
+                                pos_hint={'center_x': .65, 'center_y': .15},
+                                background_normal=
+                                "doc/images/Reading_page/right_arrow.png",
+                                background_down=
+                                "doc/images/Reading_page/right_arrow_down.png")
+        self.next_pg_but.bind(on_release=partial(self._flip_page, direction="next"))
         self.book_layout.add_widget(self.book_panel)
+        self.book_layout.add_widget(self.doc_text)
         self.book_layout.add_widget(self.book_title)
+        self.book_layout.add_widget(self.doc_page)
+        self.book_layout.add_widget(self.prev_pg_but)
+        self.book_layout.add_widget(self.next_pg_but)
         self.book_mat_layout.add_widget(self.book_panel2)
+        self.book_mat_layout.add_widget(self.doc_scroll)
         self.book_mat_layout.add_widget(self.book_timer)
         self.book_mat_layout.add_widget(self.refresh_but)
         self.book_layout.add_widget(self.book_mat_layout)
@@ -469,7 +909,8 @@ class Home(Screen, FloatLayout):
                                     "doc/images/Profile_page/pfp_border_down.png")
         self.profile_border.bind(on_release=self._add_pfp)
         self.pfp = "doc/images/Profile_page/pfp_default.png"\
-            if (self.user_details[4] == b'') else make_img(self.user_details[4])
+            if (self.user_details[4] == b'') else make_img(self.user_details[4],
+                                                           "app/doc/images/Profile_page/profile_pic.jpg")
         self.profile_pic = Image(source=self.pfp,
                                     pos_hint={"center_x": .5, "center_y": .5})
         self.pfp_layout.add_widget(self.profile_pic)
@@ -692,10 +1133,6 @@ class Home(Screen, FloatLayout):
             exec(f"self.{widget}_nav.add_widget(self.{widget}_but)")
             exec(f"self.{widget}_nav.add_widget(self.{widget}_icon)")
             exec(f"self.nav_bar.add_widget(self.{widget}_nav)")
-        for widget in ["home"]:
-            exec(f"self.{widget}_layout.add_widget(self.{widget}_panel)")
-            exec(f"self.{widget}_layout.add_widget(self.{widget}_title)")
-            exec(f"self.add_widget(self.{widget}_layout)")
         self.add_widget(self.nav_bar)
         #region Logout button
         self.logout_but = Button(text="",

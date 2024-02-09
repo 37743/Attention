@@ -123,7 +123,7 @@ class Register(Screen, FloatLayout):
             century = '20' if int(self.bd_year.text)<50 else '19'
             d = century+str(self.bd_year.text)+'-'\
                 +str(self.bd_month.text)+'-'+str(self.bd_day.text)
-            cr.execute(f"CALL add_user(\'{u}\',\'{p}\',\'{e}\',\'{c}\',\'{d}\')")
+            cr.callproc("add_user",(u,p,e,c,d))
             cn.commit()
             cn.close()
             self.register_result.text="Successful registration!"

@@ -2,16 +2,88 @@
 # Attention - Team E-JUSTians
 # Eye/Gaze Tracking Code
 # ---
-import cv2
+from cv2 import (cvtColor,
+                 VideoCapture,
+                 polylines,
+                 fillPoly,
+                 line,
+                 equalizeHist,
+                 bitwise_and,
+                 threshold,
+                 countNonZero,
+                 minEnclosingCircle,
+                 circle,
+                 flip,
+                 waitKey,
+                 destroyAllWindows,
+                 COLOR_BGR2RGB,
+                 COLOR_BGR2GRAY,
+                 THRESH_BINARY,
+                 LINE_AA)
 import numpy as np
 import mediapipe as mp
-from script.EyeTracking.utilities import LEFT_EYE, RIGHT_EYE, euclideanDistance
-import threading
+from script.eyetracking.utilities import (LEFT_EYE,
+                                          RIGHT_EYE,
+                                          EuclideanDistance)
+from time import sleep
 
 DISABLED = False
-TOTAL_BLINKS =0
 
-class GazeTracker(threading.Thread):
+# Penalty Counter
+PENALTY = {'blinks':0,
+           'left':0,
+           'center':0,
+           'right':0,
+           'recent':""}
+
+class Penalty:
+    # Modules-wide Variables
+    pause = False
+    end = False
+    reset = False
+    def __init__(self):
+        # TEMP
+        self.blinks = 0
+        self.left = 0
+        self.center = 0
+        self.right = 0
+        self.recent = ""
+
+    def update(self, penalty):
+        self.blinks = penalty['blinks']
+        self.left = penalty['left']
+        self.center = penalty['center']
+        self.right = penalty['right']
+        self.recent = penalty['recent']
+
+penalty = Penalty()
+
+class GazeTracker:
+    def _loc_status(self, avg_gr):
+        global PENALTY
+        if avg_gr < 0.65:
+            PENALTY['right'] += 1
+            return "right"
+        elif 0.65 <= avg_gr < 2.5:
+            PENALTY['center'] += 1
+            return "center"
+        else:
+            PENALTY['left'] += 1
+            return "left"
+
+    def _blink_status(self, avg_br):
+        global DISABLED
+        global PENALTY
+        if avg_br >5.5:
+            DISABLED = True
+            return ""
+        else:
+            if DISABLED == True:
+                PENALTY['blinks'] +=1
+                DISABLED = not DISABLED
+                return "blinked"
+            return ""
+    
     def gaze_ratio(self, frame, eye, landmarks, frame_h, frame_w):
         ''' Extracts and thresholds the eyes' regions,
         increases the contrast, then calculates the ratio
@@ -21,14 +93,14 @@ class GazeTracker(threading.Thread):
         center, or left direction.
 
         @eye Either 1 or 0, where 0 denotes left eye.'''
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cvtColor(frame, COLOR_BGR2GRAY)
         choice = LEFT_EYE if eye == 0 else RIGHT_EYE
         left_eye_region = np.array([(int(landmarks[i].x*frame_w), int(landmarks[i].y*frame_h)) for i in choice])
         mask = np.zeros((frame_h, frame_w), np.uint8)
-        cv2.polylines(mask, [left_eye_region], True, 255, 2)
-        cv2.fillPoly(mask, [left_eye_region], 255)
-        left_eye = cv2.bitwise_and(gray, gray, mask=mask)
-        left_eye = cv2.equalizeHist(left_eye)
+        polylines(mask, [left_eye_region], True, 255, 2)
+        fillPoly(mask, [left_eye_region], 255)
+        left_eye = bitwise_and(gray, gray, mask=mask)
+        left_eye = equalizeHist(left_eye)
 
         min_x = np.min(left_eye_region[:, 0])
         max_x = np.max(left_eye_region[:, 0])
@@ -36,12 +108,12 @@ class GazeTracker(threading.Thread):
         max_y = np.max(left_eye_region[:, 1])
 
         gray_eye = left_eye[min_y: max_y, min_x: max_x]
-        _, threshold_eye = cv2.threshold(gray_eye, 100, 255, cv2.THRESH_BINARY)
+        _, threshold_eye = threshold(gray_eye, 100, 255, THRESH_BINARY)
         threshold_h, threshold_w = threshold_eye.shape
         lthresh = threshold_eye[0: threshold_h, 0: int(threshold_w/2)]
-        lthresh_white = cv2.countNonZero(lthresh)
+        lthresh_white = countNonZero(lthresh)
         rthresh = threshold_eye[0: threshold_h, int(threshold_w/2): threshold_w]
-        rthresh_white = cv2.countNonZero(rthresh)
+        rthresh_white = countNonZero(rthresh)
         gaze_ratio = lthresh_white/rthresh_white
         return gaze_ratio
 
@@ -54,21 +126,21 @@ class GazeTracker(threading.Thread):
         # vertical
         rv_top = landmarks[right_indices[12]]
         rv_bottom = landmarks[right_indices[4]]
-        cv2.line(frame, rh_right, rh_left, (0,255,0), 2)
-        cv2.line(frame, rv_top, rv_bottom, (0,255,255), 2)
+        line(frame, rh_right, rh_left, (0,255,0), 2)
+        line(frame, rv_top, rv_bottom, (0,255,255), 2)
         # horizontal line 
         lh_right = landmarks[left_indices[0]]
         lh_left = landmarks[left_indices[8]]
         # vertical line 
         lv_top = landmarks[left_indices[12]]
         lv_bottom = landmarks[left_indices[4]]
-        cv2.line(frame, lh_right, lh_left, (0,255,0), 2)
-        cv2.line(frame, lv_top, lv_bottom, (0,255,255), 2)
+        line(frame, lh_right, lh_left, (0,255,0), 2)
+        line(frame, lv_top, lv_bottom, (0,255,255), 2)
         # euclidean distances
-        rhDistance = euclideanDistance.solve(rh_right, rh_left)
-        rvDistance = euclideanDistance.solve(rv_top, rv_bottom)
-        lvDistance = euclideanDistance.solve(lv_top, lv_bottom)
-        lhDistance = euclideanDistance.solve(lh_right, lh_left)
+        rhDistance = EuclideanDistance.solve(rh_right, rh_left)
+        rvDistance = EuclideanDistance.solve(rv_top, rv_bottom)
+        lvDistance = EuclideanDistance.solve(lv_top, lv_bottom)
+        lhDistance = EuclideanDistance.solve(lh_right, lh_left)
         try:
             reRatio = rhDistance/rvDistance
         except ZeroDivisionError:
@@ -82,21 +154,31 @@ class GazeTracker(threading.Thread):
     
     def __init__(self):
         # Captures the first device to cam-record.
-        cap = cv2.VideoCapture(0)
-        # cv2.namedWindow("Video Capture Window", cv2.WINDOW_NORMAL) 
-        # cv2.resizeWindow("Video Capture Window", 512, 400)
-        # Mediapipe's ready-made face mesh technology.
-        face_mesh = mp.solutions.face_mesh.FaceMesh(
+        super(GazeTracker, self).__init__()
+        self.cap = VideoCapture(0)
+        self.face_mesh = mp.solutions.face_mesh.FaceMesh(
             max_num_faces=1,
             refine_landmarks=True,
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5)
         while True:
-            _, self.frame = cap.read()
+            if (penalty.end):
+                break
+            if (penalty.pause):
+                continue
+            if (penalty.reset):
+                global PENALTY
+                PENALTY = {'blinks':0,
+                            'left':0,
+                            'center':0,
+                            'right':0,
+                            'recent':""}
+                penalty.reset = not penalty.reset
+            _, self.frame = self.cap.read()
             # if not ret: 
             #     break
-            rgb_frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
-            self.output = face_mesh.process(rgb_frame)
+            rgb_frame = cvtColor(self.frame, COLOR_BGR2RGB)
+            self.output = self.face_mesh.process(rgb_frame)
             frame_h, frame_w = self.frame.shape[:2]
             landmark_points = self.output.multi_face_landmarks
             if landmark_points:
@@ -108,38 +190,20 @@ class GazeTracker(threading.Thread):
                 
                 # Highlighting eyes with circles.
                 ratio = self.closed_ratio(self.frame, mesh_points, RIGHT_EYE, LEFT_EYE)
-                (l_cx, l_cy), l_radius = cv2.minEnclosingCircle(mesh_points[LEFT_EYE])
-                (r_cx, r_cy), r_radius = cv2.minEnclosingCircle(mesh_points[RIGHT_EYE])
+                (l_cx, l_cy), l_radius = minEnclosingCircle(mesh_points[LEFT_EYE])
+                (r_cx, r_cy), r_radius = minEnclosingCircle(mesh_points[RIGHT_EYE])
                 center_left = np.array([l_cx, l_cy], dtype=np.int32)
                 center_right = np.array([r_cx, r_cy], dtype=np.int32)
-                cv2.circle(self.frame, center_left, int(l_radius*.5), (0,255,0), 2, cv2.LINE_AA)
-                cv2.circle(self.frame, center_right, int(r_radius*.5), (0,255,0), 2, cv2.LINE_AA)
-
-                # Flip and add text for direction clarity.
-                self.frame = cv2.flip(self.frame, 1)
-                if avg_gaze_ratio < 0.65:
-                    print("RIGHT")
-                    # cv2.putText(frame, 'RIGHT {f}'.format(f=avg_gaze_ratio), (50, frame_h-75), cv2.FONT_HERSHEY_COMPLEX, 2, (0,255,0), 2)
-                elif 0.65 <= avg_gaze_ratio < 2:
-                    print("CENTER")
-                    # cv2.putText(frame, 'CENTER {f}'.format(f=avg_gaze_ratio), (50, frame_h-75), cv2.FONT_HERSHEY_COMPLEX, 2, (0,255,0), 2)
-                else:
-                    print("LEFT")
-                    # cv2.putText(frame, 'LEFT {f}'.format(f=avg_gaze_ratio), (50, frame_h-75), cv2.FONT_HERSHEY_COMPLEX, 2, (0,255,0), 2)
-                global DISABLED
-                global TOTAL_BLINKS
-                if ratio >5.5:
-                    DISABLED = True
-                    # cv2.putText(frame, 'Eye(s) Closed: {f}'.format(f=TOTAL_BLINKS), (50, 75), cv2.FONT_HERSHEY_COMPLEX, 2, (0,255,0), 2)
-                else:
-                    if DISABLED == True:
-                        TOTAL_BLINKS +=1
-                        print("BLINKED")
-                        DISABLED = not DISABLED
-                # cv2.imshow("Video Capture Window", frame)
-            if cv2.waitKey(1) == 27:
-            # Breaks if 'q' is pressed and ends program.
-            # TODO: change this into a trigger event for the Kivy program.
-                break
-        cap.release()
-        cv2.destroyAllWindows()
+                circle(self.frame, center_left, int(l_radius*.5), (0,255,0), 2, LINE_AA)
+                circle(self.frame, center_right, int(r_radius*.5), (0,255,0), 2, LINE_AA)
+            # Flip and add text for direction clarity.
+            self.frame = flip(self.frame, 1)
+            sleep(1)
+            PENALTY['recent'] = self._loc_status(avg_gaze_ratio)
+            self._blink_status(ratio)
+            penalty.update(PENALTY)
+            # if waitKey(1) == 27:
+            # # Breaks if 'q' is pressed and ends program.
+            #     break
+        self.cap.release()
+        destroyAllWindows()

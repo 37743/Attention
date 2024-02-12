@@ -5,6 +5,7 @@
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
+# from kivy.core.audio import SoundLoader
 from kivy.graphics import Rectangle
 from kivy.uix.button import Button
 from kivy.uix.image import Image
@@ -30,6 +31,10 @@ def thread(function):
         t.start()
         return t
     return wrap
+
+# def click_sfx(instance):
+#     sound = SoundLoader.load('sfx/switch-click.mp3')
+#     sound.play()
 
 class Splash(Screen, FloatLayout):
     ''' Represents the Splash Screen'''
@@ -95,7 +100,9 @@ class Splash(Screen, FloatLayout):
                                  background_normal="doc/icons/logo_c.png",
                                  background_disabled_normal="doc/icons/logo_c.png",
                                  background_down="doc/icons/logo_B&W.png")
-        self.logobutton.bind(on_release=self._load_program)
+        self.logobutton.bind(on_release=self._load_program,
+                            #  on_press=click_sfx
+                             )
         self.loading_text = Label(text="Press to boot-up!",
                                   font_name="Dosis",
                                   color="ffffff",

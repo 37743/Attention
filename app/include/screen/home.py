@@ -362,7 +362,7 @@ class Home(Screen, FloatLayout):
     @thread
     def _extract_pdf(self, input, doc):
         self.whole_doc = extract_text(BytesIO(input))
-        run_client(self.whole_doc)
+        run_client(self.whole_doc, "10.203.25.2")
         self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
                                for i in range(0, len(self.whole_doc), TXT_LIMIT)]
         self._update_txt(doc)
@@ -397,7 +397,7 @@ class Home(Screen, FloatLayout):
         # TXT files
         else:
             self.whole_doc = self.documents[doc][1].decode()
-            run_client(self.whole_doc)
+            run_client(self.whole_doc, "10.203.25.2")
             self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
                                for i in range(0, len(self.whole_doc), TXT_LIMIT)]
             self._update_txt(doc)
@@ -858,7 +858,7 @@ class Home(Screen, FloatLayout):
         self.doc_text = Label(text="",
                               text_size=(450,400),
                               font_name="YaHei",
-                              color=PURPLE,
+                              color="#000000",
                               font_size=16,
                               halign='left',
                               valign='top',

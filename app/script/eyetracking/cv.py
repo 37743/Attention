@@ -64,7 +64,8 @@ class GazeTracker:
         if avg_gr < 0.65:
             PENALTY['right'] += 1
             return "right"
-        elif 0.65 <= avg_gr < 2.5:
+        elif 0.65 <= avg_gr < 2:
+            print(avg_gr)
             PENALTY['center'] += 1
             return "center"
         else:

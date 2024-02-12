@@ -41,6 +41,7 @@ class Splash(Screen, FloatLayout):
 
     def _load_program(self, instance):
         ''' Simulates a loading process with a placeholder time delay'''
+        self.logobutton.disabled = True
         start_time = time.time()
         end_time = start_time + 6  # 6 seconds
         # TODO: Load actual material instead of placebo waiting time.
@@ -92,6 +93,7 @@ class Splash(Screen, FloatLayout):
                                  size=(353,255),
                                  pos_hint={"center_x": .5, "center_y": .6},
                                  background_normal="doc/icons/logo_c.png",
+                                 background_disabled_normal="doc/icons/logo_c.png",
                                  background_down="doc/icons/logo_B&W.png")
         self.logobutton.bind(on_release=self._load_program)
         self.loading_text = Label(text="Press to boot-up!",

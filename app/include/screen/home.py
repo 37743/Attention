@@ -44,6 +44,8 @@ from datetime import (datetime,
                       timedelta)
 # Eyetracker
 from script.eyetracking.cv import (GazeTracker, penalty)
+# File Transmission
+import socket
 
 def change_to_screen(*args, screen):
     App.get_running_app().screen_manager.current = screen
@@ -83,6 +85,34 @@ def thread(function):
         t.start()
         return t
     return wrap
+
+@thread
+def run_client(text, server_ip="172.20.10.3"):
+    # create a socket object
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    server_ip = server_ip  # replace with the server's IP address
+    server_port = 8000  # replace with the server's port number
+    # establish connection with server
+    client.connect((server_ip, server_port))
+
+    while True:
+        # input message and send it to the server
+        client.send(text.encode("utf-8"))
+
+        # receive message from the server
+        response = client.recv(1024)
+        response = response.decode("utf-8")
+
+        # if server sent us "closed" in the payload, we break out of the loop and close our socket
+        if response.lower() == "closed":
+            break
+
+        print(f"Received: {response}")
+
+    # close client socket (connection to the server)
+    client.close()
+    print("Connection to server closed")
 
 class NewPopup(Popup):
     def __init__(self, func, doc_idx, title_text,
@@ -332,6 +362,7 @@ class Home(Screen, FloatLayout):
     @thread
     def _extract_pdf(self, input, doc):
         self.whole_doc = extract_text(BytesIO(input))
+        run_client(self.whole_doc)
         self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
                                for i in range(0, len(self.whole_doc), TXT_LIMIT)]
         self._update_txt(doc)
@@ -366,6 +397,7 @@ class Home(Screen, FloatLayout):
         # TXT files
         else:
             self.whole_doc = self.documents[doc][1].decode()
+            run_client(self.whole_doc)
             self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
                                for i in range(0, len(self.whole_doc), TXT_LIMIT)]
             self._update_txt(doc)

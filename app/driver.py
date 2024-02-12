@@ -11,7 +11,7 @@ from kivy.config import Config
 # Window Configuration
 # Disable graphical annotation
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
-Config.set('graphics', 'resizable', 0)
+# Config.set('graphics', 'resizable', 0)
 # Config.set('graphics', 'borderless', 1)
 from script.eyetracking.utilities import WINDOW_SIZE
 from kivy.core.window import Window

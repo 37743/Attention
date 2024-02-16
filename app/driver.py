@@ -43,7 +43,7 @@ class Run(App):
         # vv Stores current application user
         self.user = ""
         self.icon = "doc/icons/attention_icon.png"
-        self.title = self.get_title()
+        self.titlei = self.get_title()
         self.splash = splash.Splash(name="Splash Screen")
         self.login = login.Login(name="Login Page")
         self.register = register.Register(name="Register Page")

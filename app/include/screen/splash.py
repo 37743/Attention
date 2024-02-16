@@ -5,7 +5,6 @@
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
-# from kivy.core.audio import SoundLoader
 from kivy.graphics import Rectangle
 from kivy.uix.button import Button
 from kivy.uix.image import Image

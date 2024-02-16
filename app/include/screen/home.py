@@ -14,6 +14,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.behaviors import ToggleButtonBehavior
+from kivy.core.audio import SoundLoader
 from kivy.graphics import Rectangle
 from kivy.core.text import LabelBase
 from kivy.animation import Animation
@@ -45,6 +46,7 @@ from datetime import (datetime,
 # Eyetracker
 from script.eyetracking.cv import (GazeTracker, penalty)
 # File Transmission
+import webbrowser
 import socket
 
 def change_to_screen(*args, screen):
@@ -164,6 +166,11 @@ class Home(Screen, FloatLayout):
         self._set_curr(new_curr=final)
         hide_layout(self=self, layout=init)
         show_layout(self=self, layout=final)
+
+    def _open_va(self, instance):
+        url = 'http://172.20.10.3:8501/'
+        self._read_pause(instance=self.pause_but)
+        webbrowser.open_new(url)
 
     def _leaderboard(self):
         result = []
@@ -335,6 +342,8 @@ class Home(Screen, FloatLayout):
                                         f"You have not read anything in a while.",
                                         "RESUME")
             self.pause_popup.bind(on_dismiss=self._read_unpause)
+            self.warning_sfx = SoundLoader.load('sfx/ES-Alarm-20Beeps-20Warning-mp3.mp3')
+            self.warning_sfx.play()
             self.pause_popup.open()
 
     def _update_txt(self, doc):
@@ -362,7 +371,7 @@ class Home(Screen, FloatLayout):
     @thread
     def _extract_pdf(self, input, doc):
         self.whole_doc = extract_text(BytesIO(input))
-        run_client(self.whole_doc, "10.203.25.2")
+        run_client(self.whole_doc, "172.20.10.3")
         self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
                                for i in range(0, len(self.whole_doc), TXT_LIMIT)]
         self._update_txt(doc)
@@ -387,6 +396,7 @@ class Home(Screen, FloatLayout):
         if (self.refresh_but in self.book_mat_layout.children):
             self.book_mat_layout.remove_widget(self.refresh_but)
             self.book_mat_layout.add_widget(self.pause_but)
+            self.book_layout.add_widget(self.va_but)
         self.gt = self._start_tracker()
         self.book_timer.text = "00:00:00"
         Clock.unschedule(self._time_inc)
@@ -397,7 +407,7 @@ class Home(Screen, FloatLayout):
         # TXT files
         else:
             self.whole_doc = self.documents[doc][1].decode()
-            run_client(self.whole_doc, "10.203.25.2")
+            run_client(self.whole_doc, "172.20.10.3")
             self.whole_doc = [self.whole_doc[i:i+TXT_LIMIT]\
                                for i in range(0, len(self.whole_doc), TXT_LIMIT)]
             self._update_txt(doc)
@@ -415,6 +425,10 @@ class Home(Screen, FloatLayout):
         self.pause_popup.open()
 
     def _read_unpause(self, instance):
+        try:
+            self.warning_sfx.stop()
+        except Exception as e:
+            print(e)
         penalty.pause = False
         Clock.schedule_interval(self._time_inc, 1)
 
@@ -425,6 +439,9 @@ class Home(Screen, FloatLayout):
         doc = self.book_title.text
         self.book_title.text = "Document Title"
         self.book_timer.text = "00:00:00"
+        self.book_mat_layout.remove_widget(self.pause_but)
+        self.book_mat_layout.add_widget(self.refresh_but)
+        self.book_layout.remove_widget(self.va_but)
         user = self.user
         xp = penalty.center
         pg = int(self.doc_page.text.rsplit("/")[0])
@@ -907,6 +924,15 @@ class Home(Screen, FloatLayout):
                                 background_down=
                                 "doc/images/Reading_page/right_arrow_down.png")
         self.next_pg_but.bind(on_release=partial(self._flip_page, direction="next"))
+        self.va_but = Button(text="",
+                                size_hint=(None,None),
+                                size=(52,56),
+                                pos_hint={'center_x': .22, 'center_y': .15},
+                                background_normal=
+                                "doc/images/Reading_page/v_assistant.png",
+                                background_down=
+                                "doc/images/Reading_page/v_assistant_down.png")
+        self.va_but.bind(on_release=self._open_va)
         self.book_layout.add_widget(self.book_panel)
         self.book_layout.add_widget(self.doc_text)
         self.book_layout.add_widget(self.book_title)
